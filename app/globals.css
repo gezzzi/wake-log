@@ -10,6 +10,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-wake-early: #0ea5e9;
+  --color-wake-good: #10b981;
+  --color-wake-ok: #eab308;
+  --color-wake-late: #f97316;
+  --color-wake-very-late: #ef4444;
 }
 
 @media (prefers-color-scheme: dark) {
