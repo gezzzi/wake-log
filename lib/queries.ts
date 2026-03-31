@@ -52,6 +52,18 @@ export async function getLogsForDays(days: number): Promise<WakeLog[]> {
   return result.rows.map(toWakeLog);
 }
 
+export async function getLogsByRange(
+  start: string,
+  end: string
+): Promise<WakeLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM wake_logs WHERE woke_up_at >= ? AND woke_up_at <= ? ORDER BY woke_up_at ASC",
+    args: [new Date(start).toISOString(), new Date(end).toISOString()],
+  });
+  return result.rows.map(toWakeLog);
+}
+
 export async function insertLog(wokeUpAt: string): Promise<WakeLog> {
   await initDb();
   const result = await db.execute({
