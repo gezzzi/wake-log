@@ -22,15 +22,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Normalize date to ISO 8601 with JST offset
+  // Handles formats like "2026/03/31 22:11" from iPhone Shortcuts
+  let normalized: string;
   const parsed = new Date(woke_up_at);
   if (isNaN(parsed.getTime())) {
-    return NextResponse.json(
-      { error: "woke_up_at is not a valid ISO 8601 date" },
-      { status: 400 }
-    );
+    // Try replacing slashes for formats like "2026/03/31 22:11"
+    const retried = new Date(woke_up_at.replace(/\//g, "-"));
+    if (isNaN(retried.getTime())) {
+      return NextResponse.json(
+        { error: "woke_up_at is not a valid date" },
+        { status: 400 }
+      );
+    }
+    normalized = retried.toISOString();
+  } else {
+    normalized = parsed.toISOString();
   }
 
-  const isDuplicate = await checkDuplicateDay(woke_up_at);
+  // If no timezone info in original string, assume JST
+  if (!/[+-]\d{2}:\d{2}$/.test(woke_up_at) && !woke_up_at.endsWith("Z")) {
+    // Re-parse as JST: subtract 9 hours from the naive datetime to get UTC
+    const naive = new Date(woke_up_at.replace(/\//g, "-"));
+    const jstDate = new Date(naive.getTime() - 9 * 60 * 60 * 1000);
+    normalized = jstDate.toISOString().replace("Z", "+09:00").replace(".000", "");
+  }
+
+  const isDuplicate = await checkDuplicateDay(normalized);
   if (isDuplicate) {
     return NextResponse.json(
       { error: "A wake log already exists for this day" },
@@ -38,6 +56,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const log = await insertLog(woke_up_at);
+  const log = await insertLog(normalized);
   return NextResponse.json(log, { status: 201 });
 }
