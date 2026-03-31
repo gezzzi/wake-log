@@ -25,27 +25,31 @@ export async function POST(request: NextRequest) {
   // Normalize date to ISO 8601 with JST offset
   // Handles formats like "2026/03/31 22:11" from iPhone Shortcuts
   let normalized: string;
-  const parsed = new Date(woke_up_at);
-  if (isNaN(parsed.getTime())) {
-    // Try replacing slashes for formats like "2026/03/31 22:11"
-    const retried = new Date(woke_up_at.replace(/\//g, "-"));
-    if (isNaN(retried.getTime())) {
+  const hasTimezone = /[+-]\d{2}:\d{2}$/.test(woke_up_at) || woke_up_at.endsWith("Z");
+
+  if (hasTimezone) {
+    // Already has timezone info, validate and use as-is
+    const parsed = new Date(woke_up_at);
+    if (isNaN(parsed.getTime())) {
       return NextResponse.json(
         { error: "woke_up_at is not a valid date" },
         { status: 400 }
       );
     }
-    normalized = retried.toISOString();
+    normalized = woke_up_at;
   } else {
-    normalized = parsed.toISOString();
-  }
-
-  // If no timezone info in original string, assume JST
-  if (!/[+-]\d{2}:\d{2}$/.test(woke_up_at) && !woke_up_at.endsWith("Z")) {
-    // Re-parse as JST: subtract 9 hours from the naive datetime to get UTC
-    const naive = new Date(woke_up_at.replace(/\//g, "-"));
-    const jstDate = new Date(naive.getTime() - 9 * 60 * 60 * 1000);
-    normalized = jstDate.toISOString().replace("Z", "+09:00").replace(".000", "");
+    // No timezone info — treat as JST, just format and append +09:00
+    const cleaned = woke_up_at.replace(/\//g, "-");
+    // Extract date/time parts with regex
+    const match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match) {
+      return NextResponse.json(
+        { error: "woke_up_at is not a valid date" },
+        { status: 400 }
+      );
+    }
+    const [, y, mo, d, h, mi, s = "00"] = match;
+    normalized = `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}T${h.padStart(2, "0")}:${mi}:${s.padStart(2, "0")}+09:00`;
   }
 
   const isDuplicate = await checkDuplicateDay(normalized);
