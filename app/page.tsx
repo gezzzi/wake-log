@@ -11,23 +11,19 @@ export default async function Home() {
 
   // Current date in JST
   const now = new Date();
-  const dateParts = new Intl.DateTimeFormat("ja-JP", {
+  const dateStr = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
+    year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "short",
-  }).formatToParts(now);
-  const month = dateParts.find((p) => p.type === "month")!.value;
-  const day = dateParts.find((p) => p.type === "day")!.value;
-  const weekday = dateParts.find((p) => p.type === "weekday")!.value;
+  }).format(now);
 
   return (
     <div className="space-y-6">
       <header className="pt-4 pb-2">
         <h1 className="text-3xl font-light tracking-tight">今日</h1>
-        <p className="text-muted text-sm mt-1">
-          {month}{day} ({weekday})
-        </p>
+        <p className="text-muted text-sm mt-1">{dateStr}</p>
       </header>
 
       {/* Wake Up */}
@@ -90,6 +86,7 @@ export default async function Home() {
               <div className="text-muted-light text-sm font-medium mt-1">時間</div>
             </div>
           </div>
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
         </div>
       </Link>
 
@@ -112,6 +109,7 @@ export default async function Home() {
               <div className="text-muted-light text-sm font-medium mt-1">セット</div>
             </div>
           </div>
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">下半身の筋肉量を増やして血圧のベースを上げ、低血圧を改善する</p>
         </div>
       </Link>
     </div>
