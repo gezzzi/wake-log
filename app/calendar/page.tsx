@@ -11,7 +11,6 @@ export default async function CalendarPage({
 }) {
   const params = await searchParams;
 
-  // Default to current month in JST
   const now = new Date();
   const jstNow = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -30,10 +29,12 @@ export default async function CalendarPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">カレンダー</h1>
+      <header className="pt-4 pb-2 flex items-end justify-between">
+        <div>
+          <h1 className="text-3xl font-light tracking-tight">カレンダー</h1>
+        </div>
         <MonthNavigator year={year} month={month} />
-      </div>
+      </header>
       <CalendarGrid logs={logs} year={year} month={month} />
     </div>
   );

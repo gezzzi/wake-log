@@ -8,8 +8,10 @@ export default async function ChartPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">起床時刻グラフ</h1>
-      <p className="text-sm text-foreground/50">直近30日間の起床時刻推移</p>
+      <header className="pt-4 pb-2">
+        <h1 className="text-3xl font-light tracking-tight">起床時刻</h1>
+        <p className="text-muted text-sm mt-1">直近30日間の推移</p>
+      </header>
       <WakeChart logs={logs} />
     </div>
   );

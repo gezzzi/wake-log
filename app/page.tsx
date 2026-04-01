@@ -1,36 +1,119 @@
 export const dynamic = "force-dynamic";
 
-import { getRecentLogs, getLogsByRange } from "@/lib/queries";
-import { calculateAverageWakeTime, getWeekBoundsJST } from "@/lib/utils";
-import { StatsCards } from "./_components/stats-cards";
-import { RecentLogs } from "./_components/recent-logs";
+import Link from "next/link";
+import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
+import { getRecentLogs } from "@/lib/queries";
+import { formatTimeJST } from "@/lib/utils";
 
 export default async function Home() {
-  const thisWeek = getWeekBoundsJST(0);
-  const lastWeek = getWeekBoundsJST(-1);
+  const logs = await getRecentLogs(1);
+  const latestTime = logs.length > 0 ? formatTimeJST(logs[0].woke_up_at) : "---";
 
-  const [recentLogs, thisWeekLogs, lastWeekLogs] = await Promise.all([
-    getRecentLogs(10),
-    getLogsByRange(thisWeek.start, thisWeek.end),
-    getLogsByRange(lastWeek.start, lastWeek.end),
-  ]);
-
-  const avgThisWeek = calculateAverageWakeTime(thisWeekLogs);
-  const avgLastWeek = calculateAverageWakeTime(lastWeekLogs);
+  // Current date in JST
+  const now = new Date();
+  const dateParts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).formatToParts(now);
+  const month = dateParts.find((p) => p.type === "month")!.value;
+  const day = dateParts.find((p) => p.type === "day")!.value;
+  const weekday = dateParts.find((p) => p.type === "weekday")!.value;
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">ダッシュボード</h1>
-      <StatsCards
-        avgThisWeek={avgThisWeek}
-        avgLastWeek={avgLastWeek}
-        thisWeekLabel={thisWeek.label}
-        lastWeekLabel={lastWeek.label}
-      />
-      <section>
-        <h2 className="text-lg font-semibold mb-3">最近の記録</h2>
-        <RecentLogs logs={recentLogs} />
-      </section>
+    <div className="space-y-6">
+      <header className="pt-4 pb-2">
+        <h1 className="text-3xl font-light tracking-tight">今日</h1>
+        <p className="text-muted text-sm mt-1">
+          {month}{day} ({weekday})
+        </p>
+      </header>
+
+      {/* Wake Up */}
+      <Link href="/wake" className="block">
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-muted">
+              <Clock size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">起床時間</span>
+            </div>
+          </div>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-5xl font-light tracking-tighter">{latestTime}</span>
+          </div>
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">起床時間を一定にすると深い睡眠（N3）が安定し、脳の修復・保護につながる</p>
+        </div>
+      </Link>
+
+      {/* Blood Pressure */}
+      <Link href="/blood-pressure" className="block">
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-muted">
+              <Heart size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">血圧</span>
+            </div>
+            <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">正常</span>
+          </div>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-5xl font-light tracking-tighter">
+              118<span className="text-3xl text-gray-300 dark:text-gray-600 mx-1">/</span>76
+            </span>
+            <span className="text-muted-light font-medium">mmHg</span>
+          </div>
+          <div className="mt-5 flex space-x-1">
+            <div className="h-1.5 flex-1 bg-green-400 dark:bg-green-500 rounded-full"></div>
+            <div className="h-1.5 flex-1 bg-gray-100 dark:bg-gray-700 rounded-full"></div>
+            <div className="h-1.5 flex-1 bg-gray-100 dark:bg-gray-700 rounded-full"></div>
+          </div>
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">低血圧の改善を目指して、日々の血圧を記録・可視化する</p>
+        </div>
+      </Link>
+
+      {/* Running */}
+      <Link href="/running" className="block">
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-muted">
+              <Activity size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">ランニング</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-3xl font-light tracking-tighter">5.2</div>
+              <div className="text-muted-light text-sm font-medium mt-1">距離 (km)</div>
+            </div>
+            <div>
+              <div className="text-3xl font-light tracking-tighter">28:45</div>
+              <div className="text-muted-light text-sm font-medium mt-1">時間</div>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      {/* Squat */}
+      <Link href="/squat" className="block">
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-muted">
+              <Dumbbell size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">スクワット</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-3xl font-light tracking-tighter">30</div>
+              <div className="text-muted-light text-sm font-medium mt-1">回数</div>
+            </div>
+            <div>
+              <div className="text-3xl font-light tracking-tighter">3</div>
+              <div className="text-muted-light text-sm font-medium mt-1">セット</div>
+            </div>
+          </div>
+        </div>
+      </Link>
     </div>
   );
 }

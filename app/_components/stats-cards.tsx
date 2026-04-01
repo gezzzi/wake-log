@@ -1,3 +1,5 @@
+import { Sun, Moon } from "lucide-react";
+
 export function StatsCards({
   avgThisWeek,
   avgLastWeek,
@@ -10,20 +12,30 @@ export function StatsCards({
   lastWeekLabel: string;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="rounded-xl border border-foreground/10 p-5">
-        <p className="text-sm text-foreground/50">今週の平均</p>
-        <p className="text-3xl font-bold mt-1 font-mono">
-          {avgThisWeek ?? "---"}
-        </p>
-        <p className="text-xs text-foreground/30 mt-1">{thisWeekLabel}</p>
+    <div className="space-y-4">
+      <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-colors">
+        <div className="flex items-center space-x-2 text-muted mb-4">
+          <Sun size={18} />
+          <span className="text-sm font-medium uppercase tracking-wider">今週の平均</span>
+        </div>
+        <div className="flex items-baseline space-x-2">
+          <span className="text-5xl font-light tracking-tighter">
+            {avgThisWeek ?? "---"}
+          </span>
+        </div>
+        <div className="text-xs text-muted-light mt-2">{thisWeekLabel}</div>
       </div>
-      <div className="rounded-xl border border-foreground/10 p-5">
-        <p className="text-sm text-foreground/50">先週の平均</p>
-        <p className="text-3xl font-bold mt-1 font-mono">
-          {avgLastWeek ?? "---"}
-        </p>
-        <p className="text-xs text-foreground/30 mt-1">{lastWeekLabel}</p>
+      <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-colors">
+        <div className="flex items-center space-x-2 text-muted mb-4">
+          <Moon size={18} />
+          <span className="text-sm font-medium uppercase tracking-wider">先週の平均</span>
+        </div>
+        <div className="flex items-baseline space-x-2">
+          <span className="text-5xl font-light tracking-tighter">
+            {avgLastWeek ?? "---"}
+          </span>
+        </div>
+        <div className="text-xs text-muted-light mt-2">{lastWeekLabel}</div>
       </div>
     </div>
   );

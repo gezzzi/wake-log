@@ -1,27 +1,20 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Nav() {
   return (
-    <nav className="border-b border-foreground/10 px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="font-bold text-lg tracking-tight">
-        WakeLog
-      </Link>
-      <div className="flex gap-6 text-sm">
-        <Link href="/" className="hover:text-foreground/70 transition-colors">
-          ダッシュボード
-        </Link>
+    <nav className="px-6 py-4">
+      <div className="max-w-md mx-auto flex items-center justify-between">
         <Link
-          href="/calendar"
-          className="hover:text-foreground/70 transition-colors"
+          href="/"
+          className="flex items-center gap-1 text-sm text-muted hover:text-foreground transition-colors"
         >
-          カレンダー
+          <ChevronLeft size={16} />
+          <span>ホーム</span>
         </Link>
-        <Link
-          href="/chart"
-          className="hover:text-foreground/70 transition-colors"
-        >
-          グラフ
-        </Link>
+        <span className="text-lg font-medium tracking-tight">WakeLog</span>
+        <ThemeToggle />
       </div>
     </nav>
   );
