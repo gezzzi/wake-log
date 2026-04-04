@@ -73,6 +73,23 @@ export async function insertLog(wokeUpAt: string): Promise<WakeLog> {
   return toWakeLog(result.rows[0]);
 }
 
+export async function updateLog(id: number, wokeUpAt: string): Promise<WakeLog> {
+  await initDb();
+  const result = await db.execute({
+    sql: "UPDATE wake_logs SET woke_up_at = ? WHERE id = ? RETURNING *",
+    args: [wokeUpAt, id],
+  });
+  return toWakeLog(result.rows[0]);
+}
+
+export async function deleteLog(id: number): Promise<void> {
+  await initDb();
+  await db.execute({
+    sql: "DELETE FROM wake_logs WHERE id = ?",
+    args: [id],
+  });
+}
+
 export async function checkDuplicateDay(wokeUpAt: string): Promise<boolean> {
   await initDb();
   // Get JST calendar day boundaries for the given timestamp
