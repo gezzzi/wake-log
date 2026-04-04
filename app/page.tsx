@@ -4,12 +4,29 @@ import Link from "next/link";
 import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
 import { getRecentLogs } from "@/lib/queries";
 import { formatTimeJST } from "@/lib/utils";
+import { getLatestBP } from "@/lib/blood-pressure-queries";
+import { getLatestRunOrWalk, getLatestExercise } from "@/lib/exercise-queries";
+
+function calcDurationMinutes(start: string, end: string): number {
+  return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  run: "ランニング",
+  walk: "ウォーキング",
+};
 
 export default async function Home() {
-  const logs = await getRecentLogs(1);
-  const latestTime = logs.length > 0 ? formatTimeJST(logs[0].woke_up_at) : "---";
+  const [wakeLogs, latestBP, latestRun, latestSquat] = await Promise.all([
+    getRecentLogs(1),
+    getLatestBP(),
+    getLatestRunOrWalk(),
+    getLatestExercise("squat"),
+  ]);
 
-  // Current date in JST
+  const latestTime =
+    wakeLogs.length > 0 ? formatTimeJST(wakeLogs[0].woke_up_at) : "---";
+
   const now = new Date();
   const dateStr = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -50,19 +67,22 @@ export default async function Home() {
               <Heart size={18} />
               <span className="text-sm font-medium uppercase tracking-wider">血圧</span>
             </div>
-            <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">正常</span>
           </div>
-          <div className="flex items-baseline space-x-2">
-            <span className="text-5xl font-light tracking-tighter">
-              118<span className="text-3xl text-gray-300 dark:text-gray-600 mx-1">/</span>76
-            </span>
-            <span className="text-muted-light font-medium">mmHg</span>
-          </div>
-          <div className="mt-5 flex space-x-1">
-            <div className="h-1.5 flex-1 bg-green-400 dark:bg-green-500 rounded-full"></div>
-            <div className="h-1.5 flex-1 bg-gray-100 dark:bg-gray-700 rounded-full"></div>
-            <div className="h-1.5 flex-1 bg-gray-100 dark:bg-gray-700 rounded-full"></div>
-          </div>
+          {latestBP ? (
+            <>
+              <div className="flex items-baseline space-x-2">
+                <span className="text-5xl font-light tracking-tighter">
+                  {latestBP.systolic}
+                  <span className="text-3xl text-gray-300 dark:text-gray-600 mx-1">/</span>
+                  {latestBP.diastolic}
+                </span>
+                <span className="text-muted-light font-medium">mmHg</span>
+              </div>
+              <div className="text-sm text-muted-light mt-1">{latestBP.pulse} bpm</div>
+            </>
+          ) : (
+            <div className="text-3xl font-light tracking-tighter text-muted-light">---</div>
+          )}
           <p className="text-xs text-muted-light mt-4 leading-relaxed">低血圧の改善を目指して、日々の血圧を記録・可視化する</p>
         </div>
       </Link>
@@ -76,16 +96,24 @@ export default async function Home() {
               <span className="text-sm font-medium uppercase tracking-wider">ランニング</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-3xl font-light tracking-tighter">5.2</div>
-              <div className="text-muted-light text-sm font-medium mt-1">距離 (km)</div>
+          {latestRun ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-3xl font-light tracking-tighter">
+                  {calcDurationMinutes(latestRun.started_at, latestRun.ended_at)}分
+                </div>
+                <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
+              </div>
+              <div>
+                <div className="text-3xl font-light tracking-tighter">
+                  {TYPE_LABELS[latestRun.type]}
+                </div>
+                <div className="text-muted-light text-sm font-medium mt-1">種類</div>
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-light tracking-tighter">28:45</div>
-              <div className="text-muted-light text-sm font-medium mt-1">時間</div>
-            </div>
-          </div>
+          ) : (
+            <div className="text-3xl font-light tracking-tighter text-muted-light">---</div>
+          )}
           <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
         </div>
       </Link>
@@ -99,16 +127,16 @@ export default async function Home() {
               <span className="text-sm font-medium uppercase tracking-wider">スクワット</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          {latestSquat ? (
             <div>
-              <div className="text-3xl font-light tracking-tighter">30</div>
-              <div className="text-muted-light text-sm font-medium mt-1">回数</div>
+              <div className="text-3xl font-light tracking-tighter">
+                {calcDurationMinutes(latestSquat.started_at, latestSquat.ended_at)}分
+              </div>
+              <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
             </div>
-            <div>
-              <div className="text-3xl font-light tracking-tighter">3</div>
-              <div className="text-muted-light text-sm font-medium mt-1">セット</div>
-            </div>
-          </div>
+          ) : (
+            <div className="text-3xl font-light tracking-tighter text-muted-light">---</div>
+          )}
           <p className="text-xs text-muted-light mt-4 leading-relaxed">下半身の筋肉量を増やして血圧のベースを上げ、低血圧を改善する</p>
         </div>
       </Link>
