@@ -8,10 +8,10 @@ function calcDurationMinutes(start: string, end: string): number {
   return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
 }
 
-export default async function RunningPage() {
+export default async function WalkingPage() {
   const [latest, logs] = await Promise.all([
-    getLatestExercise("run"),
-    getRecentByType("run", 20),
+    getLatestExercise("walk"),
+    getRecentByType("walk", 20),
   ]);
 
   return (
@@ -20,7 +20,7 @@ export default async function RunningPage() {
         <div className="flex items-center space-x-2 text-muted mb-2">
           <Activity size={18} />
           <span className="text-sm font-medium uppercase tracking-wider">
-            ランニング
+            ウォーキング
           </span>
         </div>
         <h1 className="text-3xl font-light tracking-tight">記録</h1>

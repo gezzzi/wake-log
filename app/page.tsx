@@ -5,22 +5,18 @@ import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
 import { getRecentLogs } from "@/lib/queries";
 import { formatTimeJST } from "@/lib/utils";
 import { getLatestBP } from "@/lib/blood-pressure-queries";
-import { getLatestRunOrWalk, getLatestExercise } from "@/lib/exercise-queries";
+import { getLatestExercise } from "@/lib/exercise-queries";
 
 function calcDurationMinutes(start: string, end: string): number {
   return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  run: "ランニング",
-  walk: "ウォーキング",
-};
-
 export default async function Home() {
-  const [wakeLogs, latestBP, latestRun, latestSquat] = await Promise.all([
+  const [wakeLogs, latestBP, latestRun, latestWalk, latestSquat] = await Promise.all([
     getRecentLogs(1),
     getLatestBP(),
-    getLatestRunOrWalk(),
+    getLatestExercise("run"),
+    getLatestExercise("walk"),
     getLatestExercise("squat"),
   ]);
 
@@ -97,19 +93,34 @@ export default async function Home() {
             </div>
           </div>
           {latestRun ? (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-3xl font-light tracking-tighter">
-                  {calcDurationMinutes(latestRun.started_at, latestRun.ended_at)}分
-                </div>
-                <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
+            <div>
+              <div className="text-3xl font-light tracking-tighter">
+                {calcDurationMinutes(latestRun.started_at, latestRun.ended_at)}分
               </div>
-              <div>
-                <div className="text-3xl font-light tracking-tighter">
-                  {TYPE_LABELS[latestRun.type]}
-                </div>
-                <div className="text-muted-light text-sm font-medium mt-1">種類</div>
+              <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
+            </div>
+          ) : (
+            <div className="text-3xl font-light tracking-tighter text-muted-light">---</div>
+          )}
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
+        </div>
+      </Link>
+
+      {/* Walking */}
+      <Link href="/walking" className="block">
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-muted">
+              <Activity size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">ウォーキング</span>
+            </div>
+          </div>
+          {latestWalk ? (
+            <div>
+              <div className="text-3xl font-light tracking-tighter">
+                {calcDurationMinutes(latestWalk.started_at, latestWalk.ended_at)}分
               </div>
+              <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
             </div>
           ) : (
             <div className="text-3xl font-light tracking-tighter text-muted-light">---</div>
