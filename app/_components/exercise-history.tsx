@@ -45,7 +45,7 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
 
   async function handleSave(log: ExerciseLog) {
     setLoading(true);
-    const date = log.started_at.slice(0, 10);
+    const date = log.started_at.slice(0, 10).replace(/\//g, "-");
     const [sh, sm] = editStart.split(":");
     const [eh, em] = editEnd.split(":");
     const newStart = `${date}T${sh.padStart(2, "0")}:${sm.padStart(2, "0")}:00+09:00`;

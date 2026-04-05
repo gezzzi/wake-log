@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateExercise, deleteExercise } from "@/lib/exercise-queries";
+import { normalizeDateToJST } from "@/lib/utils";
 
 export async function PUT(
   request: NextRequest,
@@ -22,7 +23,16 @@ export async function PUT(
     );
   }
 
-  const log = await updateExercise(Number(id), type, started_at, ended_at);
+  const normalizedStart = normalizeDateToJST(started_at);
+  const normalizedEnd = normalizeDateToJST(ended_at);
+  if (!normalizedStart || !normalizedEnd) {
+    return NextResponse.json(
+      { error: "Invalid date format" },
+      { status: 400 }
+    );
+  }
+
+  const log = await updateExercise(Number(id), type, normalizedStart, normalizedEnd);
   return NextResponse.json(log);
 }
 
