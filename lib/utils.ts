@@ -126,6 +126,28 @@ export function getWeekBoundsJST(offset: number = 0): {
   return { start, end, label };
 }
 
+// Normalize date string to ISO 8601 with JST offset
+// Handles "2026/04/05 13:01" format from iPhone Shortcuts
+export function normalizeDateToJST(input: string): string | null {
+  const hasTimezone =
+    /[+-]\d{2}:\d{2}$/.test(input) || input.endsWith("Z");
+
+  if (hasTimezone) {
+    const parsed = new Date(input);
+    if (isNaN(parsed.getTime())) return null;
+    return input;
+  }
+
+  const cleaned = input.replace(/\//g, "-");
+  const match = cleaned.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})\s*(\d{1,2}):(\d{2})(?::(\d{2}))?$/
+  );
+  if (!match) return null;
+
+  const [, y, mo, d, h, mi, s = "00"] = match;
+  return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}T${h.padStart(2, "0")}:${mi}:${s.padStart(2, "0")}+09:00`;
+}
+
 export function getWakeTimeColor(isoString: string): string {
   const hour = getHourJST(isoString);
   if (hour < 6) return "bg-sky-200 dark:bg-sky-900";

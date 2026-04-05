@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { insertExercise } from "@/lib/exercise-queries";
+import { normalizeDateToJST } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   const apiKey = request.headers.get("x-api-key");
@@ -29,6 +30,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const log = await insertExercise(type, started_at, ended_at);
+  const normalizedStart = normalizeDateToJST(started_at);
+  const normalizedEnd = normalizeDateToJST(ended_at);
+  if (!normalizedStart || !normalizedEnd) {
+    return NextResponse.json(
+      { error: "Invalid date format" },
+      { status: 400 }
+    );
+  }
+
+  const log = await insertExercise(type, normalizedStart, normalizedEnd);
   return NextResponse.json(log, { status: 201 });
 }
