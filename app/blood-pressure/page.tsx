@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Heart } from "lucide-react";
 import { getLatestBP, getRecentBP } from "@/lib/blood-pressure-queries";
 import { BPHistory } from "../_components/bp-history";
+import { BPChart } from "../_components/bp-chart";
 
 export default async function BloodPressurePage() {
   const [latest, logs] = await Promise.all([getLatestBP(), getRecentBP(20)]);
@@ -45,6 +46,8 @@ export default async function BloodPressurePage() {
           <p className="text-muted-light">データなし</p>
         )}
       </div>
+
+      <BPChart logs={logs} />
 
       <div>
         <div className="flex items-center space-x-2 text-muted mb-3 px-1">

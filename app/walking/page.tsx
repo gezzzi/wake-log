@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Activity } from "lucide-react";
 import { getLatestExercise, getRecentByType } from "@/lib/exercise-queries";
 import { ExerciseHistory } from "../_components/exercise-history";
+import { ExerciseChart } from "../_components/exercise-chart";
 
 function calcDurationMinutes(start: string, end: string): number {
   return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
@@ -43,6 +44,8 @@ export default async function WalkingPage() {
           <p className="text-muted-light">データなし</p>
         )}
       </div>
+
+      <ExerciseChart logs={logs} />
 
       <div>
         <div className="flex items-center space-x-2 text-muted mb-3 px-1">

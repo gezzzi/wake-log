@@ -1,20 +1,22 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Clock, Calendar, TrendingUp } from "lucide-react";
-import { getRecentLogs, getLogsByRange } from "@/lib/queries";
+import { Clock, Calendar } from "lucide-react";
+import { getRecentLogs, getLogsByRange, getLogsForDays } from "@/lib/queries";
 import { calculateAverageWakeTime, getWeekBoundsJST } from "@/lib/utils";
 import { StatsCards } from "../_components/stats-cards";
 import { RecentLogs } from "../_components/recent-logs";
+import { WakeChart } from "../_components/wake-chart";
 
 export default async function WakePage() {
   const thisWeek = getWeekBoundsJST(0);
   const lastWeek = getWeekBoundsJST(-1);
 
-  const [recentLogs, thisWeekLogs, lastWeekLogs] = await Promise.all([
+  const [recentLogs, thisWeekLogs, lastWeekLogs, chartLogs] = await Promise.all([
     getRecentLogs(10),
     getLogsByRange(thisWeek.start, thisWeek.end),
     getLogsByRange(lastWeek.start, lastWeek.end),
+    getLogsForDays(30),
   ]);
 
   const avgThisWeek = calculateAverageWakeTime(thisWeekLogs);
@@ -37,22 +39,15 @@ export default async function WakePage() {
         lastWeekLabel={lastWeek.label}
       />
 
-      <div className="flex gap-3">
-        <Link
-          href="/calendar"
-          className="flex-1 flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
-        >
-          <Calendar size={16} />
-          カレンダー
-        </Link>
-        <Link
-          href="/chart"
-          className="flex-1 flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
-        >
-          <TrendingUp size={16} />
-          グラフ
-        </Link>
-      </div>
+      <Link
+        href="/calendar"
+        className="flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
+      >
+        <Calendar size={16} />
+        カレンダー
+      </Link>
+
+      <WakeChart logs={chartLogs} />
 
       <div>
         <div className="flex items-center space-x-2 text-muted mb-3 px-1">
