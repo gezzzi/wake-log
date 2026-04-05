@@ -98,6 +98,46 @@ export async function updateExercise(
   return toExerciseLog(result.rows[0]);
 }
 
+export async function getExerciseByRange(
+  type: string,
+  start: string,
+  end: string
+): Promise<ExerciseLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM exercise_logs WHERE type = ? AND started_at >= ? AND started_at <= ? ORDER BY started_at ASC",
+    args: [type, new Date(start).toISOString(), new Date(end).toISOString()],
+  });
+  return result.rows.map(toExerciseLog);
+}
+
+export async function getRunWalkByRange(
+  start: string,
+  end: string
+): Promise<ExerciseLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') AND started_at >= ? AND started_at <= ? ORDER BY started_at ASC",
+    args: [new Date(start).toISOString(), new Date(end).toISOString()],
+  });
+  return result.rows.map(toExerciseLog);
+}
+
+export function calculateAverageDuration(logs: ExerciseLog[]): number | null {
+  if (logs.length === 0) return null;
+  const total = logs.reduce(
+    (sum, log) =>
+      sum +
+      Math.round(
+        (new Date(log.ended_at).getTime() -
+          new Date(log.started_at).getTime()) /
+          60000
+      ),
+    0
+  );
+  return Math.round(total / logs.length);
+}
+
 export async function deleteExercise(id: number): Promise<void> {
   await initDb();
   await db.execute({

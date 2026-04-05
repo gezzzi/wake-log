@@ -66,6 +66,37 @@ export async function updateBP(
   return toBPLog(result.rows[0]);
 }
 
+export async function getBPByRange(
+  start: string,
+  end: string
+): Promise<BPLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM blood_pressure_logs WHERE measured_at >= ? AND measured_at <= ? ORDER BY measured_at ASC",
+    args: [new Date(start).toISOString(), new Date(end).toISOString()],
+  });
+  return result.rows.map(toBPLog);
+}
+
+export function calculateAverageBP(
+  logs: BPLog[]
+): { systolic: number; diastolic: number; pulse: number } | null {
+  if (logs.length === 0) return null;
+  const total = logs.reduce(
+    (acc, log) => ({
+      systolic: acc.systolic + log.systolic,
+      diastolic: acc.diastolic + log.diastolic,
+      pulse: acc.pulse + log.pulse,
+    }),
+    { systolic: 0, diastolic: 0, pulse: 0 }
+  );
+  return {
+    systolic: Math.round(total.systolic / logs.length),
+    diastolic: Math.round(total.diastolic / logs.length),
+    pulse: Math.round(total.pulse / logs.length),
+  };
+}
+
 export async function deleteBP(id: number): Promise<void> {
   await initDb();
   await db.execute({
