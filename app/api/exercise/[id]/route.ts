@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateExercise, deleteExercise, SQUAT_TAGS } from "@/lib/exercise-queries";
+import { updateExercise, deleteExercise } from "@/lib/exercise-queries";
+import { SQUAT_TAGS } from "@/lib/exercise-tags";
 import { normalizeDateToJST } from "@/lib/utils";
 
 export async function PUT(

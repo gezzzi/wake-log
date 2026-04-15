@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ExerciseLog } from "@/lib/exercise-queries";
-import { SQUAT_TAGS } from "@/lib/exercise-queries";
+import { SQUAT_TAGS } from "@/lib/exercise-tags";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 

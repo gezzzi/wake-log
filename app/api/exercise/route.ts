@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { insertExercise, SQUAT_TAGS } from "@/lib/exercise-queries";
+import { insertExercise } from "@/lib/exercise-queries";
+import { SQUAT_TAGS } from "@/lib/exercise-tags";
 import { normalizeDateToJST } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
