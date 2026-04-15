@@ -80,6 +80,40 @@ export function calculateAverageWakeTime(
   return minutesToTimeString(total / logs.length);
 }
 
+export function calculateWakeTimeRange(
+  logs: { woke_up_at: string }[]
+): {
+  earliest: string;
+  earliestDate: string;
+  latest: string;
+  latestDate: string;
+  diffMinutes: number;
+} | null {
+  if (logs.length === 0) return null;
+  let minLog = logs[0];
+  let maxLog = logs[0];
+  let minMinutes = getMinutesSinceMidnightJST(logs[0].woke_up_at);
+  let maxMinutes = minMinutes;
+  for (const log of logs) {
+    const m = getMinutesSinceMidnightJST(log.woke_up_at);
+    if (m < minMinutes) {
+      minMinutes = m;
+      minLog = log;
+    }
+    if (m > maxMinutes) {
+      maxMinutes = m;
+      maxLog = log;
+    }
+  }
+  return {
+    earliest: minutesToTimeString(minMinutes),
+    earliestDate: formatShortDateJST(minLog.woke_up_at),
+    latest: minutesToTimeString(maxMinutes),
+    latestDate: formatShortDateJST(maxLog.woke_up_at),
+    diffMinutes: maxMinutes - minMinutes,
+  };
+}
+
 // Get Monday-Sunday week boundaries in JST
 // Returns ISO strings for the start (Mon 00:00) and end (Sun 23:59:59) of the week
 export function getWeekBoundsJST(offset: number = 0): {

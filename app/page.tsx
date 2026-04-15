@@ -5,19 +5,34 @@ import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
 import { getRecentLogs } from "@/lib/queries";
 import { formatTimeJST, getCalendarDayJST } from "@/lib/utils";
 import { getLatestBP } from "@/lib/blood-pressure-queries";
-import { getLatestExercise } from "@/lib/exercise-queries";
+import { countExerciseByRange } from "@/lib/exercise-queries";
 
-function calcDurationMinutes(start: string, end: string): number {
-  return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
+function getTodayJSTBounds(): { start: string; end: string } {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
+  const d = parts.find((p) => p.type === "day")!.value;
+  return {
+    start: `${y}-${m}-${d}T00:00:00+09:00`,
+    end: `${y}-${m}-${d}T23:59:59+09:00`,
+  };
 }
 
 export default async function Home() {
-  const [wakeLogs, latestBP, latestRun, latestWalk, latestSquat] = await Promise.all([
+  const today = getTodayJSTBounds();
+
+  const [wakeLogs, latestBP, runCount, walkCount, squatCount] = await Promise.all([
     getRecentLogs(1),
     getLatestBP(),
-    getLatestExercise("run"),
-    getLatestExercise("walk"),
-    getLatestExercise("squat"),
+    countExerciseByRange("run", today.start, today.end),
+    countExerciseByRange("walk", today.start, today.end),
+    countExerciseByRange("squat", today.start, today.end),
   ]);
 
   // Today's JST date string
@@ -31,18 +46,6 @@ export default async function Home() {
   const todayBP =
     latestBP && getCalendarDayJST(latestBP.measured_at) === todayJST
       ? latestBP
-      : null;
-  const todayRun =
-    latestRun && getCalendarDayJST(latestRun.started_at) === todayJST
-      ? latestRun
-      : null;
-  const todayWalk =
-    latestWalk && getCalendarDayJST(latestWalk.started_at) === todayJST
-      ? latestWalk
-      : null;
-  const todaySquat =
-    latestSquat && getCalendarDayJST(latestSquat.started_at) === todayJST
-      ? latestSquat
       : null;
 
   const latestTime = todayWake ? formatTimeJST(todayWake.woke_up_at) : "---";
@@ -117,10 +120,8 @@ export default async function Home() {
             </div>
           </div>
           <div>
-            <div className="text-3xl font-light tracking-tighter">
-              {todayRun ? calcDurationMinutes(todayRun.started_at, todayRun.ended_at) : 0}分
-            </div>
-            <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
+            <div className="text-5xl font-light tracking-tighter">{runCount}回</div>
+            <div className="text-muted-light text-sm font-medium mt-1">今日の回数</div>
           </div>
           <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
         </div>
@@ -136,10 +137,8 @@ export default async function Home() {
             </div>
           </div>
           <div>
-            <div className="text-3xl font-light tracking-tighter">
-              {todayWalk ? calcDurationMinutes(todayWalk.started_at, todayWalk.ended_at) : 0}分
-            </div>
-            <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
+            <div className="text-5xl font-light tracking-tighter">{walkCount}回</div>
+            <div className="text-muted-light text-sm font-medium mt-1">今日の回数</div>
           </div>
           <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
         </div>
@@ -155,10 +154,8 @@ export default async function Home() {
             </div>
           </div>
           <div>
-            <div className="text-3xl font-light tracking-tighter">
-              {todaySquat ? calcDurationMinutes(todaySquat.started_at, todaySquat.ended_at) : 0}分
-            </div>
-            <div className="text-muted-light text-sm font-medium mt-1">所要時間</div>
+            <div className="text-5xl font-light tracking-tighter">{squatCount}回</div>
+            <div className="text-muted-light text-sm font-medium mt-1">今日の回数</div>
           </div>
           <p className="text-xs text-muted-light mt-4 leading-relaxed">下半身の筋肉量を増やして血圧のベースを上げ、低血圧を改善する</p>
         </div>

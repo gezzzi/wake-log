@@ -31,5 +31,20 @@ export async function initDb() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`,
   ]);
+
+  // Migration: add done_at and tag columns to exercise_logs
+  const columns = await db.execute("PRAGMA table_info(exercise_logs)");
+  const columnNames = columns.rows.map((r) => r.name as string);
+
+  if (!columnNames.includes("done_at")) {
+    await db.execute("ALTER TABLE exercise_logs ADD COLUMN done_at TEXT");
+    await db.execute(
+      "UPDATE exercise_logs SET done_at = started_at WHERE done_at IS NULL"
+    );
+  }
+  if (!columnNames.includes("tag")) {
+    await db.execute("ALTER TABLE exercise_logs ADD COLUMN tag TEXT");
+  }
+
   initialized = true;
 }

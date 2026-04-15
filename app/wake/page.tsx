@@ -3,7 +3,11 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { Clock, Calendar } from "lucide-react";
 import { getRecentLogs, getLogsByRange, getLogsForDays } from "@/lib/queries";
-import { calculateAverageWakeTime, getWeekBoundsJST } from "@/lib/utils";
+import {
+  calculateAverageWakeTime,
+  calculateWakeTimeRange,
+  getWeekBoundsJST,
+} from "@/lib/utils";
 import { StatsCards } from "../_components/stats-cards";
 import { RecentLogs } from "../_components/recent-logs";
 import { WakeChart } from "../_components/wake-chart";
@@ -21,6 +25,8 @@ export default async function WakePage() {
 
   const avgThisWeek = calculateAverageWakeTime(thisWeekLogs);
   const avgLastWeek = calculateAverageWakeTime(lastWeekLogs);
+  const rangeThisWeek = calculateWakeTimeRange(thisWeekLogs);
+  const rangeLastWeek = calculateWakeTimeRange(lastWeekLogs);
 
   return (
     <div className="space-y-6">
@@ -37,6 +43,8 @@ export default async function WakePage() {
         avgLastWeek={avgLastWeek}
         thisWeekLabel={thisWeek.label}
         lastWeekLabel={lastWeek.label}
+        rangeThisWeek={rangeThisWeek}
+        rangeLastWeek={rangeLastWeek}
       />
 
       <Link

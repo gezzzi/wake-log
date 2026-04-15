@@ -3,8 +3,8 @@ export const dynamic = "force-dynamic";
 import { Activity } from "lucide-react";
 import {
   getRecentByType,
+  countExerciseByRange,
   getExerciseByRange,
-  calculateAverageDuration,
 } from "@/lib/exercise-queries";
 import { getWeekBoundsJST } from "@/lib/utils";
 import { ExerciseHistory } from "../_components/exercise-history";
@@ -14,14 +14,22 @@ export default async function WalkingPage() {
   const thisWeek = getWeekBoundsJST(0);
   const lastWeek = getWeekBoundsJST(-1);
 
-  const [logs, thisWeekLogs, lastWeekLogs] = await Promise.all([
-    getRecentByType("walk", 20),
-    getExerciseByRange("walk", thisWeek.start, thisWeek.end),
-    getExerciseByRange("walk", lastWeek.start, lastWeek.end),
-  ]);
+  const weeklyData = await Promise.all(
+    Array.from({ length: 12 }, (_, i) => {
+      const offset = -(11 - i);
+      const bounds = getWeekBoundsJST(offset);
+      return getExerciseByRange("walk", bounds.start, bounds.end).then((logs) => ({
+        week: bounds.label,
+        count: logs.length,
+      }));
+    })
+  );
 
-  const avgThisWeek = calculateAverageDuration(thisWeekLogs);
-  const avgLastWeek = calculateAverageDuration(lastWeekLogs);
+  const [logs, thisWeekCount, lastWeekCount] = await Promise.all([
+    getRecentByType("walk", 20),
+    countExerciseByRange("walk", thisWeek.start, thisWeek.end),
+    countExerciseByRange("walk", lastWeek.start, lastWeek.end),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -38,25 +46,25 @@ export default async function WalkingPage() {
       <div className="space-y-4">
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
-            今週の平均
+            今週の回数
           </div>
           <div className="text-5xl font-light tracking-tighter">
-            {avgThisWeek !== null ? `${avgThisWeek}分` : "---"}
+            {thisWeekCount}回
           </div>
           <div className="text-xs text-muted-light mt-2">{thisWeek.label}</div>
         </div>
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
-            先週の平均
+            先週の回数
           </div>
           <div className="text-5xl font-light tracking-tighter">
-            {avgLastWeek !== null ? `${avgLastWeek}分` : "---"}
+            {lastWeekCount}回
           </div>
           <div className="text-xs text-muted-light mt-2">{lastWeek.label}</div>
         </div>
       </div>
 
-      <ExerciseChart logs={logs} />
+      <ExerciseChart data={weeklyData} />
 
       <div>
         <div className="flex items-center space-x-2 text-muted mb-3 px-1">

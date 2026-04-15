@@ -1,10 +1,21 @@
 import { db, initDb } from "./db";
 
+export const SQUAT_TAGS = [
+  "朝食前",
+  "昼食前",
+  "夕食前",
+  "起床後",
+  "寝る前",
+  "その他",
+] as const;
+
+export type SquatTag = (typeof SQUAT_TAGS)[number];
+
 export type ExerciseLog = {
   id: number;
   type: string;
-  started_at: string;
-  ended_at: string;
+  done_at: string;
+  tag: string | null;
   created_at: string;
 };
 
@@ -12,8 +23,8 @@ function toExerciseLog(row: Record<string, unknown>): ExerciseLog {
   return {
     id: row.id as number,
     type: row.type as string,
-    started_at: row.started_at as string,
-    ended_at: row.ended_at as string,
+    done_at: row.done_at as string,
+    tag: (row.tag as string | null) ?? null,
     created_at: row.created_at as string,
   };
 }
@@ -23,29 +34,10 @@ export async function getLatestExercise(
 ): Promise<ExerciseLog | null> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type = ? ORDER BY started_at DESC LIMIT 1",
+    sql: "SELECT * FROM exercise_logs WHERE type = ? ORDER BY done_at DESC LIMIT 1",
     args: [type],
   });
   return result.rows.length > 0 ? toExerciseLog(result.rows[0]) : null;
-}
-
-export async function getLatestRunOrWalk(): Promise<ExerciseLog | null> {
-  await initDb();
-  const result = await db.execute(
-    "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') ORDER BY started_at DESC LIMIT 1"
-  );
-  return result.rows.length > 0 ? toExerciseLog(result.rows[0]) : null;
-}
-
-export async function getRecentExercises(
-  limit: number = 10
-): Promise<ExerciseLog[]> {
-  await initDb();
-  const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs ORDER BY started_at DESC LIMIT ?",
-    args: [limit],
-  });
-  return result.rows.map(toExerciseLog);
 }
 
 export async function getRecentByType(
@@ -54,48 +46,10 @@ export async function getRecentByType(
 ): Promise<ExerciseLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type = ? ORDER BY started_at DESC LIMIT ?",
+    sql: "SELECT * FROM exercise_logs WHERE type = ? ORDER BY done_at DESC LIMIT ?",
     args: [type, limit],
   });
   return result.rows.map(toExerciseLog);
-}
-
-export async function getRecentRunOrWalk(
-  limit: number = 10
-): Promise<ExerciseLog[]> {
-  await initDb();
-  const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') ORDER BY started_at DESC LIMIT ?",
-    args: [limit],
-  });
-  return result.rows.map(toExerciseLog);
-}
-
-export async function insertExercise(
-  type: string,
-  startedAt: string,
-  endedAt: string
-): Promise<ExerciseLog> {
-  await initDb();
-  const result = await db.execute({
-    sql: "INSERT INTO exercise_logs (type, started_at, ended_at) VALUES (?, ?, ?) RETURNING *",
-    args: [type, startedAt, endedAt],
-  });
-  return toExerciseLog(result.rows[0]);
-}
-
-export async function updateExercise(
-  id: number,
-  type: string,
-  startedAt: string,
-  endedAt: string
-): Promise<ExerciseLog> {
-  await initDb();
-  const result = await db.execute({
-    sql: "UPDATE exercise_logs SET type = ?, started_at = ?, ended_at = ? WHERE id = ? RETURNING *",
-    args: [type, startedAt, endedAt, id],
-  });
-  return toExerciseLog(result.rows[0]);
 }
 
 export async function getExerciseByRange(
@@ -105,37 +59,50 @@ export async function getExerciseByRange(
 ): Promise<ExerciseLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type = ? AND started_at >= ? AND started_at <= ? ORDER BY started_at ASC",
+    sql: "SELECT * FROM exercise_logs WHERE type = ? AND done_at >= ? AND done_at <= ? ORDER BY done_at ASC",
     args: [type, new Date(start).toISOString(), new Date(end).toISOString()],
   });
   return result.rows.map(toExerciseLog);
 }
 
-export async function getRunWalkByRange(
+export async function countExerciseByRange(
+  type: string,
   start: string,
   end: string
-): Promise<ExerciseLog[]> {
+): Promise<number> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') AND started_at >= ? AND started_at <= ? ORDER BY started_at ASC",
-    args: [new Date(start).toISOString(), new Date(end).toISOString()],
+    sql: "SELECT COUNT(*) as count FROM exercise_logs WHERE type = ? AND done_at >= ? AND done_at <= ?",
+    args: [type, new Date(start).toISOString(), new Date(end).toISOString()],
   });
-  return result.rows.map(toExerciseLog);
+  return result.rows[0].count as number;
 }
 
-export function calculateAverageDuration(logs: ExerciseLog[]): number | null {
-  if (logs.length === 0) return null;
-  const total = logs.reduce(
-    (sum, log) =>
-      sum +
-      Math.round(
-        (new Date(log.ended_at).getTime() -
-          new Date(log.started_at).getTime()) /
-          60000
-      ),
-    0
-  );
-  return Math.round(total / logs.length);
+export async function insertExercise(
+  type: string,
+  doneAt: string,
+  tag: string | null = null
+): Promise<ExerciseLog> {
+  await initDb();
+  const result = await db.execute({
+    sql: "INSERT INTO exercise_logs (type, started_at, ended_at, done_at, tag) VALUES (?, ?, ?, ?, ?) RETURNING *",
+    args: [type, doneAt, doneAt, doneAt, tag],
+  });
+  return toExerciseLog(result.rows[0]);
+}
+
+export async function updateExercise(
+  id: number,
+  type: string,
+  doneAt: string,
+  tag: string | null = null
+): Promise<ExerciseLog> {
+  await initDb();
+  const result = await db.execute({
+    sql: "UPDATE exercise_logs SET type = ?, done_at = ?, tag = ? WHERE id = ? RETURNING *",
+    args: [type, doneAt, tag, id],
+  });
+  return toExerciseLog(result.rows[0]);
 }
 
 export async function deleteExercise(id: number): Promise<void> {

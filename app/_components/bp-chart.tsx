@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,6 +15,20 @@ import type { BPLog } from "@/lib/blood-pressure-queries";
 import { formatShortDateJST } from "@/lib/utils";
 
 export function BPChart({ logs }: { logs: BPLog[] }) {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const check = () =>
+      setIsDark(document.documentElement.classList.contains("dark"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   if (logs.length === 0) {
     return <p className="text-muted text-center py-16">記録がありません</p>;
   }
@@ -23,6 +38,13 @@ export function BPChart({ logs }: { logs: BPLog[] }) {
     systolic: log.systolic,
     diastolic: log.diastolic,
   }));
+
+  const systolicColor = isDark ? "#f87171" : "#ef4444";
+  const diastolicColor = isDark ? "#60a5fa" : "#3b82f6";
+  const gridColor = isDark ? "#374151" : "#e5e7eb";
+  const axisColor = "#9ca3af";
+  const tooltipBg = isDark ? "#1e1e1e" : "#ffffff";
+  const tooltipColor = isDark ? "#f3f4f6" : "#171717";
 
   return (
     <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
@@ -35,46 +57,49 @@ export function BPChart({ logs }: { logs: BPLog[] }) {
             data={data}
             margin={{ top: 10, right: 10, bottom: 20, left: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.5} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 11, fontFamily: "Inter" }}
+              tick={{ fontSize: 11, fontFamily: "Inter", fill: axisColor }}
               angle={-45}
               textAnchor="end"
               height={60}
-              stroke="#9ca3af"
+              stroke={axisColor}
             />
             <YAxis
-              tick={{ fontSize: 12, fontFamily: "Inter" }}
+              tick={{ fontSize: 12, fontFamily: "Inter", fill: axisColor }}
               width={40}
-              stroke="#9ca3af"
+              stroke={axisColor}
             />
             <Tooltip
+              labelStyle={{ fontWeight: 500, color: tooltipColor }}
               contentStyle={{
                 borderRadius: "16px",
                 border: "none",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                 fontFamily: "Inter",
+                background: tooltipBg,
+                color: tooltipColor,
               }}
             />
             <Legend
-              wrapperStyle={{ fontSize: 12, fontFamily: "Inter" }}
+              wrapperStyle={{ fontSize: 12, fontFamily: "Inter", color: axisColor }}
             />
             <Line
               type="monotone"
               dataKey="systolic"
               name="最高"
-              stroke="#ef4444"
+              stroke={systolicColor}
               strokeWidth={2}
-              dot={{ r: 3, fill: "#ef4444" }}
+              dot={{ r: 3, fill: systolicColor }}
             />
             <Line
               type="monotone"
               dataKey="diastolic"
               name="最低"
-              stroke="#3b82f6"
+              stroke={diastolicColor}
               strokeWidth={2}
-              dot={{ r: 3, fill: "#3b82f6" }}
+              dot={{ r: 3, fill: diastolicColor }}
             />
           </LineChart>
         </ResponsiveContainer>
