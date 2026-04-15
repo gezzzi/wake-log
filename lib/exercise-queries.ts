@@ -1,10 +1,9 @@
 import { db, initDb } from "./db";
 
 export const SQUAT_TAGS = [
-  "朝食前",
-  "昼食前",
-  "夕食前",
   "歯磨き",
+  "午前",
+  "午後",
   "寝る前",
   "その他",
 ] as const;
