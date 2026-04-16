@@ -23,7 +23,7 @@ function toBPLog(row: Record<string, unknown>): BPLog {
 export async function getLatestBP(): Promise<BPLog | null> {
   await initDb();
   const result = await db.execute(
-    "SELECT * FROM blood_pressure_logs ORDER BY measured_at DESC LIMIT 1"
+    "SELECT * FROM blood_pressure_logs ORDER BY datetime(measured_at) DESC LIMIT 1"
   );
   return result.rows.length > 0 ? toBPLog(result.rows[0]) : null;
 }
@@ -31,7 +31,7 @@ export async function getLatestBP(): Promise<BPLog | null> {
 export async function getRecentBP(limit: number = 10): Promise<BPLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM blood_pressure_logs ORDER BY measured_at DESC LIMIT ?",
+    sql: "SELECT * FROM blood_pressure_logs ORDER BY datetime(measured_at) DESC LIMIT ?",
     args: [limit],
   });
   return result.rows.map(toBPLog);
@@ -72,7 +72,7 @@ export async function getBPByRange(
 ): Promise<BPLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM blood_pressure_logs WHERE measured_at >= ? AND measured_at <= ? ORDER BY measured_at ASC",
+    sql: "SELECT * FROM blood_pressure_logs WHERE datetime(measured_at) >= datetime(?) AND datetime(measured_at) <= datetime(?) ORDER BY datetime(measured_at) ASC",
     args: [new Date(start).toISOString(), new Date(end).toISOString()],
   });
   return result.rows.map(toBPLog);

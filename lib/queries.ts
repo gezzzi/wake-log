@@ -17,7 +17,7 @@ function toWakeLog(row: Record<string, unknown>): WakeLog {
 export async function getRecentLogs(limit: number = 10): Promise<WakeLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM wake_logs ORDER BY woke_up_at DESC LIMIT ?",
+    sql: "SELECT * FROM wake_logs ORDER BY datetime(woke_up_at) DESC LIMIT ?",
     args: [limit],
   });
   return result.rows.map(toWakeLog);
@@ -34,7 +34,7 @@ export async function getLogsByMonth(
   endDate.setUTCHours(endDate.getUTCHours() - 9);
 
   const result = await db.execute({
-    sql: "SELECT * FROM wake_logs WHERE woke_up_at >= ? AND woke_up_at < ? ORDER BY woke_up_at ASC",
+    sql: "SELECT * FROM wake_logs WHERE datetime(woke_up_at) >= datetime(?) AND datetime(woke_up_at) < datetime(?) ORDER BY datetime(woke_up_at) ASC",
     args: [startDate.toISOString(), endDate.toISOString()],
   });
   return result.rows.map(toWakeLog);
@@ -46,7 +46,7 @@ export async function getLogsForDays(days: number): Promise<WakeLog[]> {
   since.setDate(since.getDate() - days);
 
   const result = await db.execute({
-    sql: "SELECT * FROM wake_logs WHERE woke_up_at >= ? ORDER BY woke_up_at ASC",
+    sql: "SELECT * FROM wake_logs WHERE datetime(woke_up_at) >= datetime(?) ORDER BY datetime(woke_up_at) ASC",
     args: [since.toISOString()],
   });
   return result.rows.map(toWakeLog);
@@ -58,7 +58,7 @@ export async function getLogsByRange(
 ): Promise<WakeLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM wake_logs WHERE woke_up_at >= ? AND woke_up_at <= ? ORDER BY woke_up_at ASC",
+    sql: "SELECT * FROM wake_logs WHERE datetime(woke_up_at) >= datetime(?) AND datetime(woke_up_at) <= datetime(?) ORDER BY datetime(woke_up_at) ASC",
     args: [new Date(start).toISOString(), new Date(end).toISOString()],
   });
   return result.rows.map(toWakeLog);
@@ -110,7 +110,7 @@ export async function checkDuplicateDay(wokeUpAt: string): Promise<boolean> {
   const dayEnd = new Date(`${year}-${month}-${day}T23:59:59+09:00`);
 
   const result = await db.execute({
-    sql: "SELECT COUNT(*) as count FROM wake_logs WHERE woke_up_at >= ? AND woke_up_at <= ?",
+    sql: "SELECT COUNT(*) as count FROM wake_logs WHERE datetime(woke_up_at) >= datetime(?) AND datetime(woke_up_at) <= datetime(?)",
     args: [dayStart.toISOString(), dayEnd.toISOString()],
   });
   return (result.rows[0].count as number) > 0;
