@@ -6,13 +6,13 @@ import {
   countExerciseByRange,
   getExerciseByRange,
 } from "@/lib/exercise-queries";
-import { getWeekBoundsJST } from "@/lib/utils";
+import { getWeekBoundsJST, getTodayJSTBounds } from "@/lib/utils";
 import { ExerciseHistory } from "../_components/exercise-history";
 import { ExerciseChart } from "../_components/exercise-chart";
 
 export default async function SquatPage() {
+  const today = getTodayJSTBounds();
   const thisWeek = getWeekBoundsJST(0);
-  const lastWeek = getWeekBoundsJST(-1);
 
   const weeklyData = await Promise.all(
     Array.from({ length: 12 }, (_, i) => {
@@ -25,10 +25,10 @@ export default async function SquatPage() {
     })
   );
 
-  const [logs, thisWeekCount, lastWeekCount] = await Promise.all([
+  const [logs, todayCount, thisWeekCount] = await Promise.all([
     getRecentByType("squat", 30),
+    countExerciseByRange("squat", today.start, today.end),
     countExerciseByRange("squat", thisWeek.start, thisWeek.end),
-    countExerciseByRange("squat", lastWeek.start, lastWeek.end),
   ]);
 
   return (
@@ -46,21 +46,21 @@ export default async function SquatPage() {
       <div className="space-y-4">
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
+            今日の回数
+          </div>
+          <div className="text-5xl font-light tracking-tighter">
+            {todayCount}回
+          </div>
+          <div className="text-xs text-muted-light mt-2">{today.label}</div>
+        </div>
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
+          <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
             今週の回数
           </div>
           <div className="text-5xl font-light tracking-tighter">
             {thisWeekCount}回
           </div>
           <div className="text-xs text-muted-light mt-2">{thisWeek.label}</div>
-        </div>
-        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
-          <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
-            先週の回数
-          </div>
-          <div className="text-5xl font-light tracking-tighter">
-            {lastWeekCount}回
-          </div>
-          <div className="text-xs text-muted-light mt-2">{lastWeek.label}</div>
         </div>
       </div>
 

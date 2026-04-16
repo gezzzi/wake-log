@@ -114,6 +114,29 @@ export function calculateWakeTimeRange(
   };
 }
 
+// Get today's JST day boundaries
+export function getTodayJSTBounds(): {
+  start: string;
+  end: string;
+  label: string;
+} {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
+  const d = parts.find((p) => p.type === "day")!.value;
+  return {
+    start: `${y}-${m}-${d}T00:00:00+09:00`,
+    end: `${y}-${m}-${d}T23:59:59+09:00`,
+    label: `${Number(m)}/${Number(d)}`,
+  };
+}
+
 // Get Monday-Sunday week boundaries in JST
 // Returns ISO strings for the start (Mon 00:00) and end (Sun 23:59:59) of the week
 export function getWeekBoundsJST(offset: number = 0): {

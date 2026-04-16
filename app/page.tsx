@@ -3,26 +3,9 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
 import { getRecentLogs } from "@/lib/queries";
-import { formatTimeJST, getCalendarDayJST } from "@/lib/utils";
+import { formatTimeJST, getCalendarDayJST, getTodayJSTBounds } from "@/lib/utils";
 import { getLatestBP } from "@/lib/blood-pressure-queries";
 import { countExerciseByRange } from "@/lib/exercise-queries";
-
-function getTodayJSTBounds(): { start: string; end: string } {
-  const now = new Date();
-  const parts = new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const y = parts.find((p) => p.type === "year")!.value;
-  const m = parts.find((p) => p.type === "month")!.value;
-  const d = parts.find((p) => p.type === "day")!.value;
-  return {
-    start: `${y}-${m}-${d}T00:00:00+09:00`,
-    end: `${y}-${m}-${d}T23:59:59+09:00`,
-  };
-}
 
 export default async function Home() {
   const today = getTodayJSTBounds();
