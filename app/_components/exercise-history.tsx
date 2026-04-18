@@ -4,6 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ExerciseLog } from "@/lib/exercise-queries";
 import { SQUAT_TAGS } from "@/lib/exercise-tags";
+
+const SQUAT_TAG_COLORS: Record<string, string> = {
+  歯磨き: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
+  午前: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  午後: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+  寝る前: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+  その他: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+};
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 
@@ -98,24 +106,24 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted">
-                    {formatShortDateJST(log.done_at)}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted">
+                  {formatShortDateJST(log.done_at)}
+                </span>
+                {log.type === "run" && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                    ランニング
                   </span>
-                  {log.type === "run" && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
-                      ランニング
-                    </span>
-                  )}
-                  {log.type === "walk" && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                      ウォーキング
-                    </span>
-                  )}
-                </div>
-                {log.tag && (
-                  <span className="text-xs text-muted-light mt-0.5">
+                )}
+                {log.type === "walk" && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                    ウォーキング
+                  </span>
+                )}
+                {log.type === "squat" && log.tag && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${SQUAT_TAG_COLORS[log.tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                  >
                     {log.tag}
                   </span>
                 )}

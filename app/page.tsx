@@ -127,7 +127,6 @@ export default async function Home() {
           </div>
           <div>
             <div className="text-5xl font-light tracking-tighter">{squatCount}回</div>
-            <div className="text-muted-light text-sm font-medium mt-1">今日の回数</div>
           </div>
           <p className="text-xs text-muted-light mt-4 leading-relaxed">下半身の筋肉量を増やして血圧のベースを上げ、低血圧を改善する</p>
         </div>
