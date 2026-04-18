@@ -93,35 +93,24 @@ export default async function Home() {
         </div>
       </Link>
 
-      {/* Running */}
-      <Link href="/running" className="block">
+      {/* Cardio (Running + Walking) */}
+      <Link href="/cardio" className="block">
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2 text-muted">
               <Activity size={18} />
-              <span className="text-sm font-medium uppercase tracking-wider">ランニング</span>
+              <span className="text-sm font-medium uppercase tracking-wider">有酸素運動</span>
             </div>
           </div>
-          <div>
-            <div className="text-5xl font-light tracking-tighter">{runCount}回</div>
-            <div className="text-muted-light text-sm font-medium mt-1">今日の回数</div>
-          </div>
-          <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
-        </div>
-      </Link>
-
-      {/* Walking */}
-      <Link href="/walking" className="block">
-        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2 text-muted">
-              <Activity size={18} />
-              <span className="text-sm font-medium uppercase tracking-wider">ウォーキング</span>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-5xl font-light tracking-tighter">{runCount}回</div>
+              <div className="text-muted-light text-sm font-medium mt-1">ランニング</div>
             </div>
-          </div>
-          <div>
-            <div className="text-5xl font-light tracking-tighter">{walkCount}回</div>
-            <div className="text-muted-light text-sm font-medium mt-1">今日の回数</div>
+            <div>
+              <div className="text-5xl font-light tracking-tighter">{walkCount}回</div>
+              <div className="text-muted-light text-sm font-medium mt-1">ウォーキング</div>
+            </div>
           </div>
           <p className="text-xs text-muted-light mt-4 leading-relaxed">VO2maxを高めるために週60〜90分の有酸素運動を行う</p>
         </div>

@@ -25,19 +25,23 @@ function getCurrentDateTimeJST(): { date: string; time: string } {
   return { date: `${y}-${m}-${d}`, time: `${h}:${mi}` };
 }
 
-const TYPE_LABELS: Record<string, string> = {
+const TITLE_LABELS: Record<string, string> = {
   run: "ランニング",
   walk: "ウォーキング",
   squat: "スクワット",
+  cardio: "有酸素運動",
 };
 
-export function AddExerciseButton({ type }: { type: "run" | "walk" | "squat" }) {
+type ExerciseType = "run" | "walk" | "squat" | "cardio";
+
+export function AddExerciseButton({ type }: { type: ExerciseType }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const initial = getCurrentDateTimeJST();
   const [date, setDate] = useState(initial.date);
   const [time, setTime] = useState(initial.time);
   const [tag, setTag] = useState<string>("");
+  const [cardioType, setCardioType] = useState<"run" | "walk">("run");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +50,7 @@ export function AddExerciseButton({ type }: { type: "run" | "walk" | "squat" }) 
     setDate(now.date);
     setTime(now.time);
     setTag("");
+    setCardioType("run");
     setError(null);
   }
 
@@ -55,11 +60,12 @@ export function AddExerciseButton({ type }: { type: "run" | "walk" | "squat" }) 
     setError(null);
     const [h, m] = time.split(":");
     const done_at = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
+    const actualType = type === "cardio" ? cardioType : type;
     const body: { type: string; done_at: string; tag?: string } = {
-      type,
+      type: actualType,
       done_at,
     };
-    if (type === "squat" && tag) body.tag = tag;
+    if (actualType === "squat" && tag) body.tag = tag;
     const res = await fetch("/api/exercise", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,9 +94,40 @@ export function AddExerciseButton({ type }: { type: "run" | "walk" | "squat" }) 
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title={`${TYPE_LABELS[type]}を追加`}
+        title={`${TITLE_LABELS[type]}を追加`}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          {type === "cardio" && (
+            <div>
+              <label className="block text-sm font-medium text-muted mb-1">
+                種類
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCardioType("run")}
+                  className={`py-2 rounded-lg border text-sm transition-colors ${
+                    cardioType === "run"
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-gray-200 dark:border-gray-700 text-muted hover:bg-gray-50 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  ランニング
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardioType("walk")}
+                  className={`py-2 rounded-lg border text-sm transition-colors ${
+                    cardioType === "walk"
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-gray-200 dark:border-gray-700 text-muted hover:bg-gray-50 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  ウォーキング
+                </button>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-muted mb-1">

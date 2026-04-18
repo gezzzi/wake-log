@@ -42,6 +42,29 @@ export async function getRecentByType(
   return result.rows.map(toExerciseLog);
 }
 
+export async function getRecentRunOrWalk(
+  limit: number = 10
+): Promise<ExerciseLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') ORDER BY datetime(done_at) DESC LIMIT ?",
+    args: [limit],
+  });
+  return result.rows.map(toExerciseLog);
+}
+
+export async function getRunWalkByRange(
+  start: string,
+  end: string
+): Promise<ExerciseLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') AND datetime(done_at) >= datetime(?) AND datetime(done_at) <= datetime(?) ORDER BY datetime(done_at) ASC",
+    args: [new Date(start).toISOString(), new Date(end).toISOString()],
+  });
+  return result.rows.map(toExerciseLog);
+}
+
 export async function getExerciseByRange(
   type: string,
   start: string,
