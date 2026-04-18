@@ -99,9 +99,16 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-sm text-muted">
-                  {formatShortDateJST(log.done_at)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted">
+                    {formatShortDateJST(log.done_at)}
+                  </span>
+                  {(log.type === "run" || log.type === "walk") && (
+                    <span className="text-xs text-muted-light px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800">
+                      {log.type === "run" ? "ランニング" : "ウォーキング"}
+                    </span>
+                  )}
+                </div>
                 {log.tag && (
                   <span className="text-xs text-muted-light mt-0.5">
                     {log.tag}

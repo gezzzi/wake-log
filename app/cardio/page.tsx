@@ -22,19 +22,15 @@ const FILTER_LABELS: Record<Filter, string> = {
   walk: "ウォーキング",
 };
 
-async function countForFilter(
-  filter: Filter,
+async function countSplit(
   start: string,
   end: string
-): Promise<number> {
-  if (filter === "all") {
-    const [r, w] = await Promise.all([
-      countExerciseByRange("run", start, end),
-      countExerciseByRange("walk", start, end),
-    ]);
-    return r + w;
-  }
-  return countExerciseByRange(filter, start, end);
+): Promise<{ run: number; walk: number }> {
+  const [run, walk] = await Promise.all([
+    countExerciseByRange("run", start, end),
+    countExerciseByRange("walk", start, end),
+  ]);
+  return { run, walk };
 }
 
 export default async function CardioPage({
@@ -65,11 +61,17 @@ export default async function CardioPage({
     })
   );
 
-  const [logs, todayCount, thisWeekCount] = await Promise.all([
+  const [logs, todaySplit, thisWeekSplit] = await Promise.all([
     filter === "all" ? getRecentRunOrWalk(20) : getRecentByType(filter, 20),
-    countForFilter(filter, today.start, today.end),
-    countForFilter(filter, thisWeek.start, thisWeek.end),
+    countSplit(today.start, today.end),
+    countSplit(thisWeek.start, thisWeek.end),
   ]);
+
+  function countForFilter(split: { run: number; walk: number }): number {
+    if (filter === "run") return split.run;
+    if (filter === "walk") return split.walk;
+    return split.run + split.walk;
+  }
 
   return (
     <div className="space-y-6">
@@ -110,18 +112,44 @@ export default async function CardioPage({
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
             今日の回数
           </div>
-          <div className="text-5xl font-light tracking-tighter">
-            {todayCount}回
-          </div>
+          {filter === "all" ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-5xl font-light tracking-tighter">{todaySplit.run}回</div>
+                <div className="text-muted-light text-sm font-medium mt-1">ランニング</div>
+              </div>
+              <div>
+                <div className="text-5xl font-light tracking-tighter">{todaySplit.walk}回</div>
+                <div className="text-muted-light text-sm font-medium mt-1">ウォーキング</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-5xl font-light tracking-tighter">
+              {countForFilter(todaySplit)}回
+            </div>
+          )}
           <div className="text-xs text-muted-light mt-2">{today.label}</div>
         </div>
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
             今週の回数
           </div>
-          <div className="text-5xl font-light tracking-tighter">
-            {thisWeekCount}回
-          </div>
+          {filter === "all" ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-5xl font-light tracking-tighter">{thisWeekSplit.run}回</div>
+                <div className="text-muted-light text-sm font-medium mt-1">ランニング</div>
+              </div>
+              <div>
+                <div className="text-5xl font-light tracking-tighter">{thisWeekSplit.walk}回</div>
+                <div className="text-muted-light text-sm font-medium mt-1">ウォーキング</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-5xl font-light tracking-tighter">
+              {countForFilter(thisWeekSplit)}回
+            </div>
+          )}
           <div className="text-xs text-muted-light mt-2">{thisWeek.label}</div>
         </div>
       </div>
