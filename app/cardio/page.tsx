@@ -110,7 +110,7 @@ export default async function CardioPage({
       <div className="space-y-4">
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
-            今日の回数
+            {today.label}の回数
           </div>
           {filter === "all" ? (
             <div className="grid grid-cols-2 gap-4">
@@ -128,11 +128,10 @@ export default async function CardioPage({
               {countForFilter(todaySplit)}回
             </div>
           )}
-          <div className="text-xs text-muted-light mt-2">{today.label}</div>
         </div>
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
           <div className="text-sm font-medium text-muted uppercase tracking-wider mb-4">
-            今週の回数
+            {thisWeek.label}の回数
           </div>
           {filter === "all" ? (
             <div className="grid grid-cols-2 gap-4">
@@ -150,7 +149,6 @@ export default async function CardioPage({
               {countForFilter(thisWeekSplit)}回
             </div>
           )}
-          <div className="text-xs text-muted-light mt-2">{thisWeek.label}</div>
         </div>
       </div>
 

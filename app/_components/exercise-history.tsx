@@ -103,9 +103,14 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
                   <span className="text-sm text-muted">
                     {formatShortDateJST(log.done_at)}
                   </span>
-                  {(log.type === "run" || log.type === "walk") && (
-                    <span className="text-xs text-muted-light px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800">
-                      {log.type === "run" ? "ランニング" : "ウォーキング"}
+                  {log.type === "run" && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                      ランニング
+                    </span>
+                  )}
+                  {log.type === "walk" && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      ウォーキング
                     </span>
                   )}
                 </div>
