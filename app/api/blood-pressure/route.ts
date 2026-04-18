@@ -2,11 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { insertBP } from "@/lib/blood-pressure-queries";
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get("x-api-key");
-  if (!apiKey || apiKey !== process.env.API_KEY) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let body: {
     systolic?: number;
     diastolic?: number;

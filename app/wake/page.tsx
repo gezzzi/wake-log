@@ -11,6 +11,7 @@ import {
 import { StatsCards } from "../_components/stats-cards";
 import { RecentLogs } from "../_components/recent-logs";
 import { WakeChart } from "../_components/wake-chart";
+import { AddWakeButton } from "../_components/add-wake-button";
 
 export default async function WakePage() {
   const thisWeek = getWeekBoundsJST(0);
@@ -37,6 +38,8 @@ export default async function WakePage() {
         </div>
         <h1 className="text-3xl font-light tracking-tight">記録</h1>
       </header>
+
+      <AddWakeButton />
 
       <StatsCards
         avgThisWeek={avgThisWeek}

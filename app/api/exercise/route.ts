@@ -4,11 +4,6 @@ import { SQUAT_TAGS } from "@/lib/exercise-tags";
 import { normalizeDateToJST } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get("x-api-key");
-  if (!apiKey || apiKey !== process.env.API_KEY) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let body: { type?: string; done_at?: string; tag?: string };
   try {
     body = await request.json();

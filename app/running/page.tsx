@@ -9,6 +9,7 @@ import {
 import { getWeekBoundsJST, getTodayJSTBounds } from "@/lib/utils";
 import { ExerciseHistory } from "../_components/exercise-history";
 import { ExerciseChart } from "../_components/exercise-chart";
+import { AddExerciseButton } from "../_components/add-exercise-button";
 
 export default async function RunningPage() {
   const today = getTodayJSTBounds();
@@ -42,6 +43,8 @@ export default async function RunningPage() {
         </div>
         <h1 className="text-3xl font-light tracking-tight">記録</h1>
       </header>
+
+      <AddExerciseButton type="run" />
 
       <div className="space-y-4">
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">

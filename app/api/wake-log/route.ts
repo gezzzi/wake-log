@@ -2,11 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { insertLog, checkDuplicateDay } from "@/lib/queries";
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get("x-api-key");
-  if (!apiKey || apiKey !== process.env.API_KEY) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   let body: { woke_up_at?: string };
   try {
     body = await request.json();

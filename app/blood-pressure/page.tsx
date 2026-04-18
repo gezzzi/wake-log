@@ -9,6 +9,7 @@ import {
 import { getWeekBoundsJST } from "@/lib/utils";
 import { BPHistory } from "../_components/bp-history";
 import { BPChart } from "../_components/bp-chart";
+import { AddBPButton } from "../_components/add-bp-button";
 
 export default async function BloodPressurePage() {
   const thisWeek = getWeekBoundsJST(0);
@@ -34,6 +35,8 @@ export default async function BloodPressurePage() {
         </div>
         <h1 className="text-3xl font-light tracking-tight">記録</h1>
       </header>
+
+      <AddBPButton />
 
       <div className="space-y-4">
         <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800">
