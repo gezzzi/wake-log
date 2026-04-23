@@ -6,7 +6,6 @@ export const BP_TIME_TAGS = [
 ] as const;
 
 export const BP_SITUATION_TAGS = [
-  "食前",
   "食後",
   "運動後",
   "入浴後",

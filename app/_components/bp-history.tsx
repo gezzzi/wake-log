@@ -15,7 +15,6 @@ const TIME_TAG_COLORS: Record<string, string> = {
 };
 
 const SITUATION_TAG_COLORS: Record<string, string> = {
-  食前: "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300",
   食後: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
   運動後: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
   入浴後: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
