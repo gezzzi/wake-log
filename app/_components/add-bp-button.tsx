@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
+import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
 
 function getCurrentDateTimeJST(): { date: string; time: string } {
   const now = new Date();
@@ -33,6 +34,8 @@ export function AddBPButton() {
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [pulse, setPulse] = useState("");
+  const [timeTag, setTimeTag] = useState<string>("");
+  const [situationTag, setSituationTag] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +46,8 @@ export function AddBPButton() {
     setSystolic("");
     setDiastolic("");
     setPulse("");
+    setTimeTag("");
+    setSituationTag("");
     setError(null);
   }
 
@@ -52,15 +57,25 @@ export function AddBPButton() {
     setError(null);
     const [h, m] = time.split(":");
     const measured_at = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
+    const body: {
+      systolic: number;
+      diastolic: number;
+      pulse: number;
+      measured_at: string;
+      time_tag?: string;
+      situation_tag?: string;
+    } = {
+      systolic: Number(systolic),
+      diastolic: Number(diastolic),
+      pulse: Number(pulse),
+      measured_at,
+    };
+    if (timeTag) body.time_tag = timeTag;
+    if (situationTag) body.situation_tag = situationTag;
     const res = await fetch("/api/blood-pressure", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systolic: Number(systolic),
-        diastolic: Number(diastolic),
-        pulse: Number(pulse),
-        measured_at,
-      }),
+      body: JSON.stringify(body),
     });
     setLoading(false);
     if (!res.ok) {
@@ -149,6 +164,42 @@ export function AddBPButton() {
                 required
                 className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2"
               />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-muted mb-1">
+                時間タグ
+              </label>
+              <select
+                value={timeTag}
+                onChange={(e) => setTimeTag(e.target.value)}
+                className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2"
+              >
+                <option value="">（なし）</option>
+                {BP_TIME_TAGS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted mb-1">
+                状況タグ
+              </label>
+              <select
+                value={situationTag}
+                onChange={(e) => setSituationTag(e.target.value)}
+                className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2"
+              >
+                <option value="">（なし）</option>
+                {BP_SITUATION_TAGS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           {error && (

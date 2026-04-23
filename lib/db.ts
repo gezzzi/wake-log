@@ -33,17 +33,28 @@ export async function initDb() {
   ]);
 
   // Migration: add done_at and tag columns to exercise_logs
-  const columns = await db.execute("PRAGMA table_info(exercise_logs)");
-  const columnNames = columns.rows.map((r) => r.name as string);
+  const exerciseColumns = await db.execute("PRAGMA table_info(exercise_logs)");
+  const exerciseColumnNames = exerciseColumns.rows.map((r) => r.name as string);
 
-  if (!columnNames.includes("done_at")) {
+  if (!exerciseColumnNames.includes("done_at")) {
     await db.execute("ALTER TABLE exercise_logs ADD COLUMN done_at TEXT");
     await db.execute(
       "UPDATE exercise_logs SET done_at = started_at WHERE done_at IS NULL"
     );
   }
-  if (!columnNames.includes("tag")) {
+  if (!exerciseColumnNames.includes("tag")) {
     await db.execute("ALTER TABLE exercise_logs ADD COLUMN tag TEXT");
+  }
+
+  // Migration: add time_tag and situation_tag columns to blood_pressure_logs
+  const bpColumns = await db.execute("PRAGMA table_info(blood_pressure_logs)");
+  const bpColumnNames = bpColumns.rows.map((r) => r.name as string);
+
+  if (!bpColumnNames.includes("time_tag")) {
+    await db.execute("ALTER TABLE blood_pressure_logs ADD COLUMN time_tag TEXT");
+  }
+  if (!bpColumnNames.includes("situation_tag")) {
+    await db.execute("ALTER TABLE blood_pressure_logs ADD COLUMN situation_tag TEXT");
   }
 
   initialized = true;

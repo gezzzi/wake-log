@@ -4,7 +4,24 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { BPLog } from "@/lib/blood-pressure-queries";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
+import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+
+const TIME_TAG_COLORS: Record<string, string> = {
+  寝起き: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  午前: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
+  午後: "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300",
+  寝る前: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+};
+
+const SITUATION_TAG_COLORS: Record<string, string> = {
+  食前: "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300",
+  食後: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+  運動後: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  入浴後: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
+  ゲーム後: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+  その他: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+};
 
 export function BPHistory({ logs }: { logs: BPLog[] }) {
   const router = useRouter();
@@ -12,6 +29,8 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
   const [editSys, setEditSys] = useState("");
   const [editDia, setEditDia] = useState("");
   const [editPulse, setEditPulse] = useState("");
+  const [editTimeTag, setEditTimeTag] = useState("");
+  const [editSituationTag, setEditSituationTag] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (logs.length === 0) {
@@ -31,6 +50,8 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
     setEditSys(String(log.systolic));
     setEditDia(String(log.diastolic));
     setEditPulse(String(log.pulse));
+    setEditTimeTag(log.time_tag ?? "");
+    setEditSituationTag(log.situation_tag ?? "");
   }
 
   async function handleSave(log: BPLog) {
@@ -43,6 +64,8 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
         diastolic: Number(editDia),
         pulse: Number(editPulse),
         measured_at: log.measured_at,
+        time_tag: editTimeTag || null,
+        situation_tag: editSituationTag || null,
       }),
     });
     setEditingId(null);
@@ -82,6 +105,32 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
                   className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 w-20 text-center"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={editTimeTag}
+                  onChange={(e) => setEditTimeTag(e.target.value)}
+                  className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-sm"
+                >
+                  <option value="">時間（なし）</option>
+                  {BP_TIME_TAGS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={editSituationTag}
+                  onChange={(e) => setEditSituationTag(e.target.value)}
+                  className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-sm"
+                >
+                  <option value="">状況（なし）</option>
+                  {BP_SITUATION_TAGS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => handleSave(log)}
@@ -99,11 +148,25 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-muted">
                   {formatShortDateJST(log.measured_at)}{" "}
                   {formatTimeJST(log.measured_at)}
                 </span>
+                {log.time_tag && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${TIME_TAG_COLORS[log.time_tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                  >
+                    {log.time_tag}
+                  </span>
+                )}
+                {log.situation_tag && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${SITUATION_TAG_COLORS[log.situation_tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                  >
+                    {log.situation_tag}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xl font-light tracking-tighter">
