@@ -146,25 +146,29 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-1 min-w-0">
                 <span className="text-sm text-muted">
                   {formatShortDateJST(log.measured_at)}{" "}
                   {formatTimeJST(log.measured_at)}
                 </span>
-                {log.time_tag && (
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${TIME_TAG_COLORS[log.time_tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
-                  >
-                    {log.time_tag}
-                  </span>
-                )}
-                {log.situation_tag && (
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${SITUATION_TAG_COLORS[log.situation_tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
-                  >
-                    {log.situation_tag}
-                  </span>
+                {(log.time_tag || log.situation_tag) && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {log.time_tag && (
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${TIME_TAG_COLORS[log.time_tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                      >
+                        {log.time_tag}
+                      </span>
+                    )}
+                    {log.situation_tag && (
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${SITUATION_TAG_COLORS[log.situation_tag] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"}`}
+                      >
+                        {log.situation_tag}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-3">
