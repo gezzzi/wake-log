@@ -10,7 +10,7 @@ export const BP_SITUATION_TAGS = [
   "運動後",
   "入浴後",
   "ゲーム後",
-  "その他",
+  "平常時",
 ] as const;
 
 export type BPTimeTag = (typeof BP_TIME_TAGS)[number];

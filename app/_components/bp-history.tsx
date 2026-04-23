@@ -19,7 +19,7 @@ const SITUATION_TAG_COLORS: Record<string, string> = {
   運動後: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
   入浴後: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
   ゲーム後: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
-  その他: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  平常時: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 };
 
 export function BPHistory({ logs }: { logs: BPLog[] }) {
