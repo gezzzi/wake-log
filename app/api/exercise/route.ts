@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { insertExercise } from "@/lib/exercise-queries";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
 import { normalizeDateToJST } from "@/lib/utils";
@@ -57,5 +58,8 @@ export async function POST(request: NextRequest) {
   }
 
   const log = await insertExercise(type, normalized, finalTag);
+  revalidatePath("/");
+  revalidatePath("/cardio");
+  revalidatePath("/squat");
   return NextResponse.json(log, { status: 201 });
 }

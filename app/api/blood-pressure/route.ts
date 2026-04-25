@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { insertBP } from "@/lib/blood-pressure-queries";
 import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
 
@@ -73,5 +74,7 @@ export async function POST(request: NextRequest) {
     finalTimeTag,
     finalSituationTag
   );
+  revalidatePath("/");
+  revalidatePath("/blood-pressure");
   return NextResponse.json(log, { status: 201 });
 }

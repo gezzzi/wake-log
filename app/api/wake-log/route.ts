@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { insertLog, checkDuplicateDay } from "@/lib/queries";
 
 export async function POST(request: NextRequest) {
@@ -56,5 +57,9 @@ export async function POST(request: NextRequest) {
   }
 
   const log = await insertLog(normalized);
+  revalidatePath("/");
+  revalidatePath("/wake");
+  revalidatePath("/calendar");
+  revalidatePath("/chart");
   return NextResponse.json(log, { status: 201 });
 }
