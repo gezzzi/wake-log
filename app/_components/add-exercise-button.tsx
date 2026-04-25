@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
-import { SQUAT_TAGS } from "@/lib/exercise-tags";
+import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
 
 function getCurrentDateTimeJST(): { date: string; time: string } {
   const now = new Date();
@@ -65,7 +65,7 @@ export function AddExerciseButton({ type }: { type: ExerciseType }) {
       type: actualType,
       done_at,
     };
-    if (actualType === "squat" && tag) body.tag = tag;
+    if (tag) body.tag = tag;
     const res = await fetch("/api/exercise", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -166,6 +166,25 @@ export function AddExerciseButton({ type }: { type: ExerciseType }) {
               >
                 <option value="">（タグなし）</option>
                 {SQUAT_TAGS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {(type === "run" || type === "walk" || type === "cardio") && (
+            <div>
+              <label className="block text-sm font-medium text-muted mb-1">
+                時間タグ
+              </label>
+              <select
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2"
+              >
+                <option value="">（タグなし）</option>
+                {CARDIO_TIME_TAGS.map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateExercise, deleteExercise } from "@/lib/exercise-queries";
-import { SQUAT_TAGS } from "@/lib/exercise-tags";
+import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
 import { normalizeDateToJST } from "@/lib/utils";
 
 export async function PUT(
@@ -33,14 +33,24 @@ export async function PUT(
   }
 
   let finalTag: string | null = null;
-  if (type === "squat" && tag) {
-    if (!SQUAT_TAGS.includes(tag as (typeof SQUAT_TAGS)[number])) {
-      return NextResponse.json(
-        { error: `tag must be one of: ${SQUAT_TAGS.join(", ")}` },
-        { status: 400 }
-      );
+  if (tag) {
+    if (type === "squat") {
+      if (!SQUAT_TAGS.includes(tag as (typeof SQUAT_TAGS)[number])) {
+        return NextResponse.json(
+          { error: `tag must be one of: ${SQUAT_TAGS.join(", ")}` },
+          { status: 400 }
+        );
+      }
+      finalTag = tag;
+    } else if (type === "run" || type === "walk") {
+      if (!CARDIO_TIME_TAGS.includes(tag as (typeof CARDIO_TIME_TAGS)[number])) {
+        return NextResponse.json(
+          { error: `tag must be one of: ${CARDIO_TIME_TAGS.join(", ")}` },
+          { status: 400 }
+        );
+      }
+      finalTag = tag;
     }
-    finalTag = tag;
   }
 
   const log = await updateExercise(Number(id), type, normalized, finalTag);

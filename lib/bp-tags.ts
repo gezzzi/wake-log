@@ -10,6 +10,7 @@ export const BP_SITUATION_TAGS = [
   "運動後",
   "入浴後",
   "ゲーム後",
+  "寝不足",
   "平常時",
 ] as const;
 
