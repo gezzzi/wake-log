@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
+import { createExerciseAction } from "@/app/actions/exercise";
 
 function getCurrentDateTimeJST(): { date: string; time: string } {
   const now = new Date();
@@ -35,14 +35,13 @@ const TITLE_LABELS: Record<string, string> = {
 type ExerciseType = "run" | "walk" | "squat" | "cardio";
 
 export function AddExerciseButton({ type }: { type: ExerciseType }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const initial = getCurrentDateTimeJST();
   const [date, setDate] = useState(initial.date);
   const [time, setTime] = useState(initial.time);
   const [tag, setTag] = useState<string>("");
   const [cardioType, setCardioType] = useState<"run" | "walk">("run");
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function reset() {
@@ -54,32 +53,26 @@ export function AddExerciseButton({ type }: { type: ExerciseType }) {
     setError(null);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     const [h, m] = time.split(":");
     const done_at = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
-    const actualType = type === "cardio" ? cardioType : type;
-    const body: { type: string; done_at: string; tag?: string } = {
-      type: actualType,
-      done_at,
-    };
-    if (tag) body.tag = tag;
-    const res = await fetch("/api/exercise", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+    const actualType: "run" | "walk" | "squat" =
+      type === "cardio" ? cardioType : type;
+    startTransition(async () => {
+      const result = await createExerciseAction({
+        type: actualType,
+        done_at,
+        tag: tag || null,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setOpen(false);
+      reset();
     });
-    setLoading(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "エラーが発生しました");
-      return;
-    }
-    setOpen(false);
-    reset();
-    router.refresh();
   }
 
   return (
@@ -205,10 +198,10 @@ export function AddExerciseButton({ type }: { type: ExerciseType }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="flex-1 py-3 rounded-2xl bg-foreground text-background font-medium disabled:opacity-50 transition-opacity"
             >
-              {loading ? "保存中..." : "保存"}
+              {isPending ? "保存中..." : "保存"}
             </button>
           </div>
         </form>

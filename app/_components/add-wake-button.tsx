@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
+import { createWakeLog } from "@/app/actions/wake";
 
 function getTodayDateJST(): string {
   const now = new Date();
@@ -33,34 +33,27 @@ function getCurrentTimeJST(): string {
 }
 
 export function AddWakeButton() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(getTodayDateJST());
   const [time, setTime] = useState(getCurrentTimeJST());
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     const [h, m] = time.split(":");
     const woke_up_at = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
-    const res = await fetch("/api/wake-log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ woke_up_at }),
+    startTransition(async () => {
+      const result = await createWakeLog(woke_up_at);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setOpen(false);
+      setDate(getTodayDateJST());
+      setTime(getCurrentTimeJST());
     });
-    setLoading(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "エラーが発生しました");
-      return;
-    }
-    setOpen(false);
-    setDate(getTodayDateJST());
-    setTime(getCurrentTimeJST());
-    router.refresh();
   }
 
   return (
@@ -111,10 +104,10 @@ export function AddWakeButton() {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="flex-1 py-3 rounded-2xl bg-foreground text-background font-medium disabled:opacity-50 transition-opacity"
             >
-              {loading ? "保存中..." : "保存"}
+              {isPending ? "保存中..." : "保存"}
             </button>
           </div>
         </form>

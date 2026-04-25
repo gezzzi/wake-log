@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import type { WakeLog } from "@/lib/queries";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+import { updateWakeLog, deleteWakeLog } from "@/app/actions/wake";
 
 export function RecentLogs({ logs }: { logs: WakeLog[] }) {
-  const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   if (logs.length === 0) {
     return (
@@ -18,39 +17,31 @@ export function RecentLogs({ logs }: { logs: WakeLog[] }) {
     );
   }
 
-  async function handleDelete(id: number) {
+  function handleDelete(id: number) {
     if (!confirm("この記録を削除しますか？")) return;
-    setLoading(true);
-    await fetch(`/api/wake-log/${id}`, { method: "DELETE" });
-    router.refresh();
-    setLoading(false);
+    startTransition(async () => {
+      await deleteWakeLog(id);
+    });
   }
 
   function startEdit(log: WakeLog) {
     setEditingId(log.id);
-    // Extract time portion for the input (HH:mm)
     const time = formatTimeJST(log.woke_up_at);
     setEditValue(time);
   }
 
-  async function handleSave(log: WakeLog) {
-    setLoading(true);
-    // Build full ISO string from original date + new time
+  function handleSave(log: WakeLog) {
     const date = log.woke_up_at.slice(0, 10);
     const [h, m] = editValue.split(":");
     const newTime = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
-    await fetch(`/api/wake-log/${log.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ woke_up_at: newTime }),
+    startTransition(async () => {
+      await updateWakeLog(log.id, newTime);
+      setEditingId(null);
     });
-    setEditingId(null);
-    router.refresh();
-    setLoading(false);
   }
 
   return (
-    <div className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-colors divide-y divide-gray-100 dark:divide-gray-800 ${loading ? "opacity-50 pointer-events-none" : ""}`}>
+    <div className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-colors divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
       {logs.map((log) => (
         <div
           key={log.id}

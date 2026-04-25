@@ -1,22 +1,25 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import Link from "next/link";
 import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
 import { getRecentLogs } from "@/lib/queries";
 import { formatTimeJST, getCalendarDayJST, getTodayJSTBounds } from "@/lib/utils";
 import { getLatestBP } from "@/lib/blood-pressure-queries";
-import { countExerciseByRange } from "@/lib/exercise-queries";
+import { getAllExerciseByRange } from "@/lib/exercise-queries";
 
 export default async function Home() {
   const today = getTodayJSTBounds();
 
-  const [wakeLogs, latestBP, runCount, walkCount, squatCount] = await Promise.all([
+  // 3 parallel queries (was 5)
+  const [wakeLogs, latestBP, todayExercises] = await Promise.all([
     getRecentLogs(1),
     getLatestBP(),
-    countExerciseByRange("run", today.start, today.end),
-    countExerciseByRange("walk", today.start, today.end),
-    countExerciseByRange("squat", today.start, today.end),
+    getAllExerciseByRange(today.start, today.end),
   ]);
+
+  const runCount = todayExercises.filter((l) => l.type === "run").length;
+  const walkCount = todayExercises.filter((l) => l.type === "walk").length;
+  const squatCount = todayExercises.filter((l) => l.type === "squat").length;
 
   // Today's JST date string
   const todayJST = getCalendarDayJST(new Date().toISOString());

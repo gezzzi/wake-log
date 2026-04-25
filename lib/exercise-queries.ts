@@ -53,6 +53,18 @@ export async function getRecentRunOrWalk(
   return result.rows.map(toExerciseLog);
 }
 
+export async function getAllExerciseByRange(
+  start: string,
+  end: string
+): Promise<ExerciseLog[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM exercise_logs WHERE datetime(done_at) >= datetime(?) AND datetime(done_at) <= datetime(?) ORDER BY datetime(done_at) ASC",
+    args: [new Date(start).toISOString(), new Date(end).toISOString()],
+  });
+  return result.rows.map(toExerciseLog);
+}
+
 export async function getRunWalkByRange(
   start: string,
   end: string

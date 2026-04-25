@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
 import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
+import { createBP } from "@/app/actions/blood-pressure";
 
 function getCurrentDateTimeJST(): { date: string; time: string } {
   const now = new Date();
@@ -26,7 +26,6 @@ function getCurrentDateTimeJST(): { date: string; time: string } {
 }
 
 export function AddBPButton() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const initial = getCurrentDateTimeJST();
   const [date, setDate] = useState(initial.date);
@@ -36,7 +35,7 @@ export function AddBPButton() {
   const [pulse, setPulse] = useState("");
   const [timeTag, setTimeTag] = useState<string>("");
   const [situationTag, setSituationTag] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function reset() {
@@ -51,41 +50,27 @@ export function AddBPButton() {
     setError(null);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     const [h, m] = time.split(":");
     const measured_at = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
-    const body: {
-      systolic: number;
-      diastolic: number;
-      pulse: number;
-      measured_at: string;
-      time_tag?: string;
-      situation_tag?: string;
-    } = {
-      systolic: Number(systolic),
-      diastolic: Number(diastolic),
-      pulse: Number(pulse),
-      measured_at,
-    };
-    if (timeTag) body.time_tag = timeTag;
-    if (situationTag) body.situation_tag = situationTag;
-    const res = await fetch("/api/blood-pressure", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+    startTransition(async () => {
+      const result = await createBP({
+        systolic: Number(systolic),
+        diastolic: Number(diastolic),
+        pulse: Number(pulse),
+        measured_at,
+        time_tag: timeTag || null,
+        situation_tag: situationTag || null,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setOpen(false);
+      reset();
     });
-    setLoading(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "エラーが発生しました");
-      return;
-    }
-    setOpen(false);
-    reset();
-    router.refresh();
   }
 
   return (
@@ -215,10 +200,10 @@ export function AddBPButton() {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="flex-1 py-3 rounded-2xl bg-foreground text-background font-medium disabled:opacity-50 transition-opacity"
             >
-              {loading ? "保存中..." : "保存"}
+              {isPending ? "保存中..." : "保存"}
             </button>
           </div>
         </form>

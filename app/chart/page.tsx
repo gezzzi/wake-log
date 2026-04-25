@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import { getLogsForDays } from "@/lib/queries";
 import { WakeChart } from "../_components/wake-chart";

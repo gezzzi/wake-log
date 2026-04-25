@@ -1,14 +1,8 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import Link from "next/link";
 import { Activity } from "lucide-react";
-import {
-  getRecentByType,
-  getRecentRunOrWalk,
-  countExerciseByRange,
-  getExerciseByRange,
-  getRunWalkByRange,
-} from "@/lib/exercise-queries";
+import { getRunWalkByRange } from "@/lib/exercise-queries";
 import { getWeekBoundsJST, getTodayJSTBounds } from "@/lib/utils";
 import { ExerciseHistory } from "../_components/exercise-history";
 import { ExerciseChart } from "../_components/exercise-chart";
@@ -22,17 +16,6 @@ const FILTER_LABELS: Record<Filter, string> = {
   walk: "ウォーキング",
 };
 
-async function countSplit(
-  start: string,
-  end: string
-): Promise<{ run: number; walk: number }> {
-  const [run, walk] = await Promise.all([
-    countExerciseByRange("run", start, end),
-    countExerciseByRange("walk", start, end),
-  ]);
-  return { run, walk };
-}
-
 export default async function CardioPage({
   searchParams,
 }: {
@@ -44,28 +27,53 @@ export default async function CardioPage({
 
   const today = getTodayJSTBounds();
   const thisWeek = getWeekBoundsJST(0);
+  const twelveWeeksAgo = getWeekBoundsJST(-11);
 
-  const weeklyData = await Promise.all(
-    Array.from({ length: 12 }, async (_, i) => {
-      const offset = -(11 - i);
-      const bounds = getWeekBoundsJST(offset);
-      let count: number;
-      if (filter === "all") {
-        const logs = await getRunWalkByRange(bounds.start, bounds.end);
-        count = logs.length;
-      } else {
-        const logs = await getExerciseByRange(filter, bounds.start, bounds.end);
-        count = logs.length;
-      }
-      return { week: bounds.label, count };
-    })
+  // Single query: get all run/walk logs for past 12 weeks
+  const allLogs = await getRunWalkByRange(twelveWeeksAgo.start, thisWeek.end);
+
+  // Compute weekly counts in JS
+  const weeklyData = Array.from({ length: 12 }, (_, i) => {
+    const offset = -(11 - i);
+    const bounds = getWeekBoundsJST(offset);
+    const inWeek = allLogs.filter(
+      (log) =>
+        new Date(log.done_at) >= new Date(bounds.start) &&
+        new Date(log.done_at) <= new Date(bounds.end)
+    );
+    const filtered =
+      filter === "all"
+        ? inWeek
+        : inWeek.filter((log) => log.type === filter);
+    return { week: bounds.label, count: filtered.length };
+  });
+
+  // Compute today/this week splits in JS
+  const todayLogs = allLogs.filter(
+    (log) =>
+      new Date(log.done_at) >= new Date(today.start) &&
+      new Date(log.done_at) <= new Date(today.end)
   );
+  const thisWeekLogs = allLogs.filter(
+    (log) =>
+      new Date(log.done_at) >= new Date(thisWeek.start) &&
+      new Date(log.done_at) <= new Date(thisWeek.end)
+  );
+  const todaySplit = {
+    run: todayLogs.filter((l) => l.type === "run").length,
+    walk: todayLogs.filter((l) => l.type === "walk").length,
+  };
+  const thisWeekSplit = {
+    run: thisWeekLogs.filter((l) => l.type === "run").length,
+    walk: thisWeekLogs.filter((l) => l.type === "walk").length,
+  };
 
-  const [logs, todaySplit, thisWeekSplit] = await Promise.all([
-    filter === "all" ? getRecentRunOrWalk(20) : getRecentByType(filter, 20),
-    countSplit(today.start, today.end),
-    countSplit(thisWeek.start, thisWeek.end),
-  ]);
+  // Recent 20 logs (filtered)
+  const filteredAll =
+    filter === "all" ? allLogs : allLogs.filter((l) => l.type === filter);
+  const logs = [...filteredAll]
+    .sort((a, b) => (a.done_at < b.done_at ? 1 : -1))
+    .slice(0, 20);
 
   function countForFilter(split: { run: number; walk: number }): number {
     if (filter === "run") return split.run;
@@ -93,6 +101,7 @@ export default async function CardioPage({
             <Link
               key={f}
               href={href}
+              prefetch
               className={`flex-1 text-center py-2 rounded-full text-sm transition-colors ${
                 active
                   ? "bg-foreground text-background"

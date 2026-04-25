@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import type { BPLog } from "@/lib/blood-pressure-queries";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+import { updateBPAction, deleteBPAction } from "@/app/actions/blood-pressure";
 
 const TIME_TAG_COLORS: Record<string, string> = {
   寝起き: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
@@ -23,25 +23,23 @@ const SITUATION_TAG_COLORS: Record<string, string> = {
 };
 
 export function BPHistory({ logs }: { logs: BPLog[] }) {
-  const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editSys, setEditSys] = useState("");
   const [editDia, setEditDia] = useState("");
   const [editPulse, setEditPulse] = useState("");
   const [editTimeTag, setEditTimeTag] = useState("");
   const [editSituationTag, setEditSituationTag] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   if (logs.length === 0) {
     return <p className="text-muted text-center py-8">記録がありません</p>;
   }
 
-  async function handleDelete(id: number) {
+  function handleDelete(id: number) {
     if (!confirm("この記録を削除しますか？")) return;
-    setLoading(true);
-    await fetch(`/api/blood-pressure/${id}`, { method: "DELETE" });
-    router.refresh();
-    setLoading(false);
+    startTransition(async () => {
+      await deleteBPAction(id);
+    });
   }
 
   function startEdit(log: BPLog) {
@@ -53,28 +51,23 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
     setEditSituationTag(log.situation_tag ?? "");
   }
 
-  async function handleSave(log: BPLog) {
-    setLoading(true);
-    await fetch(`/api/blood-pressure/${log.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  function handleSave(log: BPLog) {
+    startTransition(async () => {
+      await updateBPAction(log.id, {
         systolic: Number(editSys),
         diastolic: Number(editDia),
         pulse: Number(editPulse),
         measured_at: log.measured_at,
         time_tag: editTimeTag || null,
         situation_tag: editSituationTag || null,
-      }),
+      });
+      setEditingId(null);
     });
-    setEditingId(null);
-    router.refresh();
-    setLoading(false);
   }
 
   return (
     <div
-      className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 ${loading ? "opacity-50 pointer-events-none" : ""}`}
+      className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       {logs.map((log) => (
         <div key={log.id} className="px-6 py-4">

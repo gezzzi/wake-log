@@ -1,11 +1,7 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import { Dumbbell } from "lucide-react";
-import {
-  getRecentByType,
-  countExerciseByRange,
-  getExerciseByRange,
-} from "@/lib/exercise-queries";
+import { getExerciseByRange } from "@/lib/exercise-queries";
 import { getWeekBoundsJST, getTodayJSTBounds } from "@/lib/utils";
 import { ExerciseHistory } from "../_components/exercise-history";
 import { ExerciseChart } from "../_components/exercise-chart";
@@ -14,23 +10,39 @@ import { AddExerciseButton } from "../_components/add-exercise-button";
 export default async function SquatPage() {
   const today = getTodayJSTBounds();
   const thisWeek = getWeekBoundsJST(0);
+  const twelveWeeksAgo = getWeekBoundsJST(-11);
 
-  const weeklyData = await Promise.all(
-    Array.from({ length: 12 }, (_, i) => {
-      const offset = -(11 - i);
-      const bounds = getWeekBoundsJST(offset);
-      return getExerciseByRange("squat", bounds.start, bounds.end).then((logs) => ({
-        week: bounds.label,
-        count: logs.length,
-      }));
-    })
+  // Single query: get all squat logs for past 12 weeks
+  const allLogs = await getExerciseByRange(
+    "squat",
+    twelveWeeksAgo.start,
+    thisWeek.end
   );
 
-  const [logs, todayCount, thisWeekCount] = await Promise.all([
-    getRecentByType("squat", 30),
-    countExerciseByRange("squat", today.start, today.end),
-    countExerciseByRange("squat", thisWeek.start, thisWeek.end),
-  ]);
+  const weeklyData = Array.from({ length: 12 }, (_, i) => {
+    const offset = -(11 - i);
+    const bounds = getWeekBoundsJST(offset);
+    const count = allLogs.filter(
+      (log) =>
+        new Date(log.done_at) >= new Date(bounds.start) &&
+        new Date(log.done_at) <= new Date(bounds.end)
+    ).length;
+    return { week: bounds.label, count };
+  });
+
+  const todayCount = allLogs.filter(
+    (log) =>
+      new Date(log.done_at) >= new Date(today.start) &&
+      new Date(log.done_at) <= new Date(today.end)
+  ).length;
+  const thisWeekCount = allLogs.filter(
+    (log) =>
+      new Date(log.done_at) >= new Date(thisWeek.start) &&
+      new Date(log.done_at) <= new Date(thisWeek.end)
+  ).length;
+  const logs = [...allLogs]
+    .sort((a, b) => (a.done_at < b.done_at ? 1 : -1))
+    .slice(0, 30);
 
   return (
     <div className="space-y-6">

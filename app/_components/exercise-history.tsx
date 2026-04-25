@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import type { ExerciseLog } from "@/lib/exercise-queries";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
+import {
+  updateExerciseAction,
+  deleteExerciseAction,
+} from "@/app/actions/exercise";
 
 const SQUAT_TAG_COLORS: Record<string, string> = {
   歯磨き: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
@@ -22,22 +25,20 @@ import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 
 export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
-  const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTime, setEditTime] = useState("");
   const [editTag, setEditTag] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   if (logs.length === 0) {
     return <p className="text-muted text-center py-8">記録がありません</p>;
   }
 
-  async function handleDelete(id: number) {
+  function handleDelete(id: number) {
     if (!confirm("この記録を削除しますか？")) return;
-    setLoading(true);
-    await fetch(`/api/exercise/${id}`, { method: "DELETE" });
-    router.refresh();
-    setLoading(false);
+    startTransition(async () => {
+      await deleteExerciseAction(id);
+    });
   }
 
   function startEdit(log: ExerciseLog) {
@@ -46,28 +47,23 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
     setEditTag(log.tag ?? "");
   }
 
-  async function handleSave(log: ExerciseLog) {
-    setLoading(true);
+  function handleSave(log: ExerciseLog) {
     const date = log.done_at.slice(0, 10).replace(/\//g, "-");
     const [h, m] = editTime.split(":");
     const newDoneAt = `${date}T${h.padStart(2, "0")}:${m.padStart(2, "0")}:00+09:00`;
-    await fetch(`/api/exercise/${log.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: log.type,
+    startTransition(async () => {
+      await updateExerciseAction(log.id, {
+        type: log.type as "run" | "walk" | "squat",
         done_at: newDoneAt,
         tag: editTag || null,
-      }),
+      });
+      setEditingId(null);
     });
-    setEditingId(null);
-    router.refresh();
-    setLoading(false);
   }
 
   return (
     <div
-      className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 ${loading ? "opacity-50 pointer-events-none" : ""}`}
+      className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       {logs.map((log) => (
         <div key={log.id} className="px-6 py-4">
