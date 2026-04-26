@@ -7,6 +7,7 @@ export const BP_TIME_TAGS = [
 
 export const BP_SITUATION_TAGS = [
   "食後",
+  "カフェイン後",
   "運動後",
   "入浴後",
   "ゲーム後",
