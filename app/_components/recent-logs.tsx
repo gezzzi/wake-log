@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { WakeLog } from "@/lib/queries";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import { updateWakeLog, deleteWakeLog } from "@/app/actions/wake";
 
 export function RecentLogs({ logs }: { logs: WakeLog[] }) {
+  const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -21,6 +23,7 @@ export function RecentLogs({ logs }: { logs: WakeLog[] }) {
     if (!confirm("この記録を削除しますか？")) return;
     startTransition(async () => {
       await deleteWakeLog(id);
+      router.refresh();
     });
   }
 
@@ -37,6 +40,7 @@ export function RecentLogs({ logs }: { logs: WakeLog[] }) {
     startTransition(async () => {
       await updateWakeLog(log.id, newTime);
       setEditingId(null);
+      router.refresh();
     });
   }
 

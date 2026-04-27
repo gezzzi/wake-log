@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { ExerciseLog } from "@/lib/exercise-queries";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
 import {
@@ -25,6 +26,7 @@ import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 
 export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
+  const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTime, setEditTime] = useState("");
   const [editTag, setEditTag] = useState<string>("");
@@ -38,6 +40,7 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
     if (!confirm("この記録を削除しますか？")) return;
     startTransition(async () => {
       await deleteExerciseAction(id);
+      router.refresh();
     });
   }
 
@@ -58,6 +61,7 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
         tag: editTag || null,
       });
       setEditingId(null);
+      router.refresh();
     });
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
@@ -35,6 +36,7 @@ const TITLE_LABELS: Record<string, string> = {
 type ExerciseType = "run" | "walk" | "squat" | "cardio";
 
 export function AddExerciseButton({ type }: { type: ExerciseType }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const initial = getCurrentDateTimeJST();
   const [date, setDate] = useState(initial.date);
@@ -72,6 +74,7 @@ export function AddExerciseButton({ type }: { type: ExerciseType }) {
       }
       setOpen(false);
       reset();
+      router.refresh();
     });
   }
 

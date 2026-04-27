@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
 import { createWakeLog } from "@/app/actions/wake";
@@ -33,6 +34,7 @@ function getCurrentTimeJST(): string {
 }
 
 export function AddWakeButton() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(getTodayDateJST());
   const [time, setTime] = useState(getCurrentTimeJST());
@@ -53,6 +55,7 @@ export function AddWakeButton() {
       setOpen(false);
       setDate(getTodayDateJST());
       setTime(getCurrentTimeJST());
+      router.refresh();
     });
   }
 

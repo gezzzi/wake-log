@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { BPLog } from "@/lib/blood-pressure-queries";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
@@ -25,6 +26,7 @@ const SITUATION_TAG_COLORS: Record<string, string> = {
 };
 
 export function BPHistory({ logs }: { logs: BPLog[] }) {
+  const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editSys, setEditSys] = useState("");
   const [editDia, setEditDia] = useState("");
@@ -41,6 +43,7 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
     if (!confirm("この記録を削除しますか？")) return;
     startTransition(async () => {
       await deleteBPAction(id);
+      router.refresh();
     });
   }
 
@@ -64,6 +67,7 @@ export function BPHistory({ logs }: { logs: BPLog[] }) {
         situation_tag: editSituationTag || null,
       });
       setEditingId(null);
+      router.refresh();
     });
   }
 

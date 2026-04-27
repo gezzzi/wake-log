@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
 import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
@@ -26,6 +27,7 @@ function getCurrentDateTimeJST(): { date: string; time: string } {
 }
 
 export function AddBPButton() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const initial = getCurrentDateTimeJST();
   const [date, setDate] = useState(initial.date);
@@ -70,6 +72,7 @@ export function AddBPButton() {
       }
       setOpen(false);
       reset();
+      router.refresh();
     });
   }
 
