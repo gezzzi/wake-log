@@ -150,35 +150,34 @@ export function getWeekBoundsJST(offset: number = 0): {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    weekday: "short",
   }).formatToParts(now);
 
   const year = Number(jstParts.find((p) => p.type === "year")!.value);
   const month = Number(jstParts.find((p) => p.type === "month")!.value);
   const day = Number(jstParts.find((p) => p.type === "day")!.value);
 
-  // Get current day of week (0=Sun, 1=Mon, ..., 6=Sat)
-  const todayJST = new Date(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T00:00:00+09:00`);
-  const dow = todayJST.getDay();
-  // Convert to Mon=0 .. Sun=6
+  // Use UTC-based dates as a "frozen" representation of the JST date
+  // This avoids timezone issues with Date.getDay() / setDate() which use local TZ
+  const dateUTC = new Date(Date.UTC(year, month - 1, day));
+  const dow = dateUTC.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   const daysSinceMonday = (dow + 6) % 7;
 
-  // This week's Monday
-  const monday = new Date(todayJST);
-  monday.setDate(monday.getDate() - daysSinceMonday + offset * 7);
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
+  const monday = new Date(
+    Date.UTC(year, month - 1, day - daysSinceMonday + offset * 7)
+  );
+  const sunday = new Date(
+    Date.UTC(year, month - 1, day - daysSinceMonday + offset * 7 + 6)
+  );
 
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
   const start = `${fmt(monday)}T00:00:00+09:00`;
   const end = `${fmt(sunday)}T23:59:59+09:00`;
 
-  const mParts = new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    month: "numeric",
-    day: "numeric",
-  });
-  const label = `${mParts.format(monday)}〜${mParts.format(sunday)}`;
+  const monthMon = monday.getUTCMonth() + 1;
+  const dayMon = monday.getUTCDate();
+  const monthSun = sunday.getUTCMonth() + 1;
+  const daySun = sunday.getUTCDate();
+  const label = `${monthMon}/${dayMon}〜${monthSun}/${daySun}`;
 
   return { start, end, label };
 }
