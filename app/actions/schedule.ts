@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { upsertSchedule, deleteSchedule } from "@/lib/schedule-queries";
+import {
+  upsertSchedule,
+  deleteSchedule,
+  updateMealTime,
+} from "@/lib/schedule-queries";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -40,6 +44,27 @@ export async function saveSchedule(input: {
 
 export async function deleteScheduleAction(id: number): Promise<ActionResult> {
   await deleteSchedule(id);
+  revalidatePath("/");
+  revalidatePath("/meals");
+  revalidatePath("/wake");
+  return { ok: true };
+}
+
+export async function saveMealTime(input: {
+  date: string;
+  meal_type: "breakfast" | "lunch" | "dinner";
+  time: string;
+}): Promise<ActionResult> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
+    return { ok: false, error: "Invalid date format" };
+  }
+  if (!/^\d{2}:\d{2}$/.test(input.time)) {
+    return { ok: false, error: "Invalid time format" };
+  }
+  if (!["breakfast", "lunch", "dinner"].includes(input.meal_type)) {
+    return { ok: false, error: "Invalid meal type" };
+  }
+  await updateMealTime(input.date, input.meal_type, input.time);
   revalidatePath("/");
   revalidatePath("/meals");
   revalidatePath("/wake");

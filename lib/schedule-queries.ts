@@ -83,6 +83,33 @@ export async function getRecentSchedules(
   return result.rows.map(toSchedule);
 }
 
+export async function updateMealTime(
+  date: string,
+  mealType: "breakfast" | "lunch" | "dinner",
+  time: string
+): Promise<DailySchedule> {
+  await initDb();
+  const sqlMap = {
+    breakfast: `INSERT INTO daily_schedules (date, breakfast_at)
+                VALUES (?, ?)
+                ON CONFLICT(date) DO UPDATE SET breakfast_at = excluded.breakfast_at
+                RETURNING *`,
+    lunch: `INSERT INTO daily_schedules (date, lunch_at)
+            VALUES (?, ?)
+            ON CONFLICT(date) DO UPDATE SET lunch_at = excluded.lunch_at
+            RETURNING *`,
+    dinner: `INSERT INTO daily_schedules (date, dinner_at)
+             VALUES (?, ?)
+             ON CONFLICT(date) DO UPDATE SET dinner_at = excluded.dinner_at
+             RETURNING *`,
+  };
+  const result = await db.execute({
+    sql: sqlMap[mealType],
+    args: [date, time],
+  });
+  return toSchedule(result.rows[0]);
+}
+
 export async function deleteSchedule(id: number): Promise<void> {
   await initDb();
   await db.execute({
