@@ -86,7 +86,7 @@ export async function getRecentSchedules(
 export async function updateMealTime(
   date: string,
   mealType: "breakfast" | "lunch" | "dinner",
-  time: string
+  time: string | null
 ): Promise<DailySchedule> {
   await initDb();
   const sqlMap = {

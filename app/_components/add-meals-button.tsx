@@ -55,6 +55,7 @@ export function AddMealsButton() {
   const [date, setDate] = useState(getTodayDateJST());
   const [time, setTime] = useState(initialTime);
   const [mealType, setMealType] = useState<MealType>(guessMealType(initialTime));
+  const [skipped, setSkipped] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +64,7 @@ export function AddMealsButton() {
     setDate(getTodayDateJST());
     setTime(now);
     setMealType(guessMealType(now));
+    setSkipped(false);
     setError(null);
   }
 
@@ -78,7 +80,7 @@ export function AddMealsButton() {
       const result = await saveMealTime({
         date,
         meal_type: mealType,
-        time,
+        time: skipped ? null : time,
       });
       if (!result.ok) {
         setError(result.error);
@@ -146,11 +148,21 @@ export function AddMealsButton() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                required
-                className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2"
+                required={!skipped}
+                disabled={skipped}
+                className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 disabled:opacity-40"
               />
             </div>
           </div>
+          <label className="flex items-center gap-2 text-sm text-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={skipped}
+              onChange={(e) => setSkipped(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-700"
+            />
+            記録なし（抜く）
+          </label>
           {error && (
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           )}

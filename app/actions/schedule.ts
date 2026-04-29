@@ -53,12 +53,12 @@ export async function deleteScheduleAction(id: number): Promise<ActionResult> {
 export async function saveMealTime(input: {
   date: string;
   meal_type: "breakfast" | "lunch" | "dinner";
-  time: string;
+  time: string | null;
 }): Promise<ActionResult> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
     return { ok: false, error: "Invalid date format" };
   }
-  if (!/^\d{2}:\d{2}$/.test(input.time)) {
+  if (input.time !== null && !/^\d{2}:\d{2}$/.test(input.time)) {
     return { ok: false, error: "Invalid time format" };
   }
   if (!["breakfast", "lunch", "dinner"].includes(input.meal_type)) {
