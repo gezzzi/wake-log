@@ -66,7 +66,7 @@ export default async function Home() {
           <div className="flex items-baseline space-x-2">
             <span className="text-5xl font-light tracking-tighter">{latestTime}</span>
           </div>
-          <p className="text-xs text-muted-light mt-4 leading-relaxed">起床時間を一定にすると深い睡眠（N3）が安定し、脳の修復・保護につながる</p>
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">起床時間を一定にし、深い睡眠（N3）につなげる</p>
         </div>
       </Link>
 

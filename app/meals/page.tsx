@@ -2,33 +2,40 @@ export const revalidate = 60;
 
 import { Utensils } from "lucide-react";
 import {
-  getScheduleByDate,
   getRecentSchedules,
+  getSchedulesByRange,
+  calculateMealAverages,
 } from "@/lib/schedule-queries";
-import { getTodayJSTBounds } from "@/lib/utils";
-import { ScheduleForm } from "../_components/schedule-form";
+import { getWeekBoundsJST } from "@/lib/utils";
+import { AddMealsButton } from "../_components/add-meals-button";
+import { MealsStatsCards } from "../_components/meals-stats-cards";
+import { MealsChart } from "../_components/meals-chart";
 import { ScheduleHistory } from "../_components/schedule-history";
 
 export default async function MealsPage() {
-  const today = getTodayJSTBounds();
-  const dateStr = today.start.slice(0, 10);
+  const thisWeek = getWeekBoundsJST(0);
+  const lastWeek = getWeekBoundsJST(-1);
+  const thisWeekStart = thisWeek.start.slice(0, 10);
+  const thisWeekEnd = thisWeek.end.slice(0, 10);
+  const lastWeekStart = lastWeek.start.slice(0, 10);
+  const lastWeekEnd = lastWeek.end.slice(0, 10);
 
-  const [schedule, recentSchedules] = await Promise.all([
-    getScheduleByDate(dateStr),
-    getRecentSchedules(30),
-  ]);
+  // Past 30 days for chart
+  const chartStart = new Date();
+  chartStart.setDate(chartStart.getDate() - 30);
+  const chartStartStr = chartStart.toISOString().slice(0, 10);
+  const chartEndStr = thisWeekEnd;
 
-  // Filter out today from history (it's shown in the form)
-  const history = recentSchedules.filter((s) => s.date !== dateStr);
+  const [thisWeekSchedules, lastWeekSchedules, chartSchedules, recentSchedules] =
+    await Promise.all([
+      getSchedulesByRange(thisWeekStart, thisWeekEnd),
+      getSchedulesByRange(lastWeekStart, lastWeekEnd),
+      getSchedulesByRange(chartStartStr, chartEndStr),
+      getRecentSchedules(30),
+    ]);
 
-  const now = new Date();
-  const dateLabel = new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  }).format(now);
+  const thisWeekAvg = calculateMealAverages(thisWeekSchedules);
+  const lastWeekAvg = calculateMealAverages(lastWeekSchedules);
 
   return (
     <div className="space-y-6">
@@ -39,11 +46,19 @@ export default async function MealsPage() {
             食事
           </span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight">食事の時間</h1>
-        <p className="text-muted text-sm mt-1">{dateLabel}</p>
+        <h1 className="text-3xl font-light tracking-tight">記録</h1>
       </header>
 
-      <ScheduleForm date={dateStr} initial={schedule} />
+      <AddMealsButton />
+
+      <MealsStatsCards
+        thisWeek={thisWeekAvg}
+        lastWeek={lastWeekAvg}
+        thisWeekLabel={thisWeek.label}
+        lastWeekLabel={lastWeek.label}
+      />
+
+      <MealsChart schedules={chartSchedules} />
 
       <div>
         <div className="flex items-center space-x-2 text-muted mb-3 px-1">
@@ -51,7 +66,7 @@ export default async function MealsPage() {
             履歴
           </span>
         </div>
-        <ScheduleHistory schedules={history} />
+        <ScheduleHistory schedules={recentSchedules} />
       </div>
     </div>
   );

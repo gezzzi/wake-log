@@ -31,6 +31,47 @@ export async function getScheduleByDate(
   return result.rows.length > 0 ? toSchedule(result.rows[0]) : null;
 }
 
+export async function getSchedulesByRange(
+  startDate: string,
+  endDate: string
+): Promise<DailySchedule[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM daily_schedules WHERE date >= ? AND date <= ? ORDER BY date ASC",
+    args: [startDate, endDate],
+  });
+  return result.rows.map(toSchedule);
+}
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+export function calculateMealAverages(schedules: DailySchedule[]): {
+  breakfast: string | null;
+  lunch: string | null;
+  dinner: string | null;
+} {
+  function avg(times: (string | null)[]): string | null {
+    const valid = times.filter((t): t is string => t !== null);
+    if (valid.length === 0) return null;
+    const total = valid.reduce((sum, t) => sum + timeToMinutes(t), 0);
+    return minutesToTime(total / valid.length);
+  }
+  return {
+    breakfast: avg(schedules.map((s) => s.breakfast_at)),
+    lunch: avg(schedules.map((s) => s.lunch_at)),
+    dinner: avg(schedules.map((s) => s.dinner_at)),
+  };
+}
+
 export async function getRecentSchedules(
   limit: number = 30
 ): Promise<DailySchedule[]> {
