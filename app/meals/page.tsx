@@ -4,38 +4,37 @@ import { Utensils } from "lucide-react";
 import {
   getRecentSchedules,
   getSchedulesByRange,
-  calculateMealAverages,
+  getScheduleByDate,
 } from "@/lib/schedule-queries";
-import { getWeekBoundsJST } from "@/lib/utils";
+import { getTodayJSTBounds, getWeekBoundsJST } from "@/lib/utils";
 import { AddMealsButton } from "../_components/add-meals-button";
-import { MealsStatsCards } from "../_components/meals-stats-cards";
+import { MealsTodayYesterday } from "../_components/meals-today-yesterday";
 import { MealsChart } from "../_components/meals-chart";
 import { ScheduleHistory } from "../_components/schedule-history";
 
+function shiftDate(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  return dt.toISOString().slice(0, 10);
+}
+
 export default async function MealsPage() {
-  const thisWeek = getWeekBoundsJST(0);
-  const lastWeek = getWeekBoundsJST(-1);
-  const thisWeekStart = thisWeek.start.slice(0, 10);
-  const thisWeekEnd = thisWeek.end.slice(0, 10);
-  const lastWeekStart = lastWeek.start.slice(0, 10);
-  const lastWeekEnd = lastWeek.end.slice(0, 10);
+  const today = getTodayJSTBounds();
+  const todayStr = today.start.slice(0, 10);
+  const yesterdayStr = shiftDate(todayStr, -1);
 
   // Past 30 days for chart
-  const chartStart = new Date();
-  chartStart.setDate(chartStart.getDate() - 30);
-  const chartStartStr = chartStart.toISOString().slice(0, 10);
-  const chartEndStr = thisWeekEnd;
+  const thisWeek = getWeekBoundsJST(0);
+  const thisWeekEnd = thisWeek.end.slice(0, 10);
+  const chartStart = shiftDate(todayStr, -30);
 
-  const [thisWeekSchedules, lastWeekSchedules, chartSchedules, recentSchedules] =
+  const [todaySchedule, yesterdaySchedule, chartSchedules, recentSchedules] =
     await Promise.all([
-      getSchedulesByRange(thisWeekStart, thisWeekEnd),
-      getSchedulesByRange(lastWeekStart, lastWeekEnd),
-      getSchedulesByRange(chartStartStr, chartEndStr),
+      getScheduleByDate(todayStr),
+      getScheduleByDate(yesterdayStr),
+      getSchedulesByRange(chartStart, thisWeekEnd),
       getRecentSchedules(30),
     ]);
-
-  const thisWeekAvg = calculateMealAverages(thisWeekSchedules);
-  const lastWeekAvg = calculateMealAverages(lastWeekSchedules);
 
   return (
     <div className="space-y-6">
@@ -51,11 +50,11 @@ export default async function MealsPage() {
 
       <AddMealsButton />
 
-      <MealsStatsCards
-        thisWeek={thisWeekAvg}
-        lastWeek={lastWeekAvg}
-        thisWeekLabel={thisWeek.label}
-        lastWeekLabel={lastWeek.label}
+      <MealsTodayYesterday
+        todayDate={todayStr}
+        yesterdayDate={yesterdayStr}
+        todaySchedule={todaySchedule}
+        yesterdaySchedule={yesterdaySchedule}
       />
 
       <MealsChart schedules={chartSchedules} />
