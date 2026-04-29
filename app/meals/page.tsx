@@ -1,6 +1,6 @@
 export const revalidate = 60;
 
-import { Calendar } from "lucide-react";
+import { Utensils } from "lucide-react";
 import {
   getScheduleByDate,
   getRecentSchedules,
@@ -9,7 +9,7 @@ import { getTodayJSTBounds } from "@/lib/utils";
 import { ScheduleForm } from "../_components/schedule-form";
 import { ScheduleHistory } from "../_components/schedule-history";
 
-export default async function SchedulePage() {
+export default async function MealsPage() {
   const today = getTodayJSTBounds();
   const dateStr = today.start.slice(0, 10);
 
@@ -34,9 +34,9 @@ export default async function SchedulePage() {
     <div className="space-y-6">
       <header className="pt-4 pb-2">
         <div className="flex items-center space-x-2 text-muted mb-2">
-          <Calendar size={18} />
+          <Utensils size={18} />
           <span className="text-sm font-medium uppercase tracking-wider">
-            スケジュール
+            食事
           </span>
         </div>
         <h1 className="text-3xl font-light tracking-tight">食事の時間</h1>

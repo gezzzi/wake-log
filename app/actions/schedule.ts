@@ -32,14 +32,16 @@ export async function saveSchedule(input: {
     input.lunch_at,
     input.dinner_at
   );
-  revalidatePath("/schedule");
+  revalidatePath("/");
+  revalidatePath("/meals");
   revalidatePath("/wake");
   return { ok: true };
 }
 
 export async function deleteScheduleAction(id: number): Promise<ActionResult> {
   await deleteSchedule(id);
-  revalidatePath("/schedule");
+  revalidatePath("/");
+  revalidatePath("/meals");
   revalidatePath("/wake");
   return { ok: true };
 }

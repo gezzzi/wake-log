@@ -1,20 +1,22 @@
 export const revalidate = 60;
 
 import Link from "next/link";
-import { Clock, Heart, Activity, Dumbbell } from "lucide-react";
+import { Clock, Heart, Activity, Dumbbell, Utensils } from "lucide-react";
 import { getRecentLogs } from "@/lib/queries";
 import { formatTimeJST, getCalendarDayJST, getTodayJSTBounds } from "@/lib/utils";
 import { getLatestBP } from "@/lib/blood-pressure-queries";
 import { getAllExerciseByRange } from "@/lib/exercise-queries";
+import { getScheduleByDate } from "@/lib/schedule-queries";
 
 export default async function Home() {
   const today = getTodayJSTBounds();
+  const todayDateStr = today.start.slice(0, 10);
 
-  // 3 parallel queries (was 5)
-  const [wakeLogs, latestBP, todayExercises] = await Promise.all([
+  const [wakeLogs, latestBP, todayExercises, todaySchedule] = await Promise.all([
     getRecentLogs(1),
     getLatestBP(),
     getAllExerciseByRange(today.start, today.end),
+    getScheduleByDate(todayDateStr),
   ]);
 
   const runCount = todayExercises.filter((l) => l.type === "run").length;
@@ -65,6 +67,39 @@ export default async function Home() {
             <span className="text-5xl font-light tracking-tighter">{latestTime}</span>
           </div>
           <p className="text-xs text-muted-light mt-4 leading-relaxed">起床時間を一定にすると深い睡眠（N3）が安定し、脳の修復・保護につながる</p>
+        </div>
+      </Link>
+
+      {/* Meals */}
+      <Link href="/meals" className="block">
+        <div className="bg-card rounded-3xl p-6 shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-all hover:shadow-md active:scale-[0.98]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-muted">
+              <Utensils size={18} />
+              <span className="text-sm font-medium uppercase tracking-wider">食事時間</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <div className="text-3xl font-light tracking-tighter">
+                {todaySchedule?.breakfast_at ?? "—"}
+              </div>
+              <div className="text-muted-light text-sm font-medium mt-1">朝</div>
+            </div>
+            <div>
+              <div className="text-3xl font-light tracking-tighter">
+                {todaySchedule?.lunch_at ?? "—"}
+              </div>
+              <div className="text-muted-light text-sm font-medium mt-1">昼</div>
+            </div>
+            <div>
+              <div className="text-3xl font-light tracking-tighter">
+                {todaySchedule?.dinner_at ?? "—"}
+              </div>
+              <div className="text-muted-light text-sm font-medium mt-1">夜</div>
+            </div>
+          </div>
+          <p className="text-xs text-muted-light mt-4 leading-relaxed">規則正しい食事の時間は体内時計を整え、睡眠の質を高める</p>
         </div>
       </Link>
 

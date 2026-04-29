@@ -59,7 +59,7 @@ export default async function WakePage() {
           カレンダー
         </Link>
         <Link
-          href="/schedule"
+          href="/meals"
           className="flex-1 flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
         >
           <Utensils size={16} />
