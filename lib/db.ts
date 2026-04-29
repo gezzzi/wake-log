@@ -30,6 +30,14 @@ export async function initDb() {
       ended_at TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`,
+    `CREATE TABLE IF NOT EXISTS daily_schedules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT UNIQUE NOT NULL,
+      breakfast_at TEXT,
+      lunch_at TEXT,
+      dinner_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
   ]);
 
   // Migration: add done_at and tag columns to exercise_logs

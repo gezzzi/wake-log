@@ -1,7 +1,7 @@
 export const revalidate = 60;
 
 import Link from "next/link";
-import { Clock, Calendar } from "lucide-react";
+import { Clock, Calendar, Utensils } from "lucide-react";
 import { getRecentLogs, getLogsByRange, getLogsForDays } from "@/lib/queries";
 import {
   calculateAverageWakeTime,
@@ -50,13 +50,22 @@ export default async function WakePage() {
         rangeLastWeek={rangeLastWeek}
       />
 
-      <Link
-        href="/calendar"
-        className="flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
-      >
-        <Calendar size={16} />
-        カレンダー
-      </Link>
+      <div className="flex gap-3">
+        <Link
+          href="/calendar"
+          className="flex-1 flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
+        >
+          <Calendar size={16} />
+          カレンダー
+        </Link>
+        <Link
+          href="/schedule"
+          className="flex-1 flex items-center justify-center gap-2 py-3 bg-card rounded-2xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 text-sm text-muted hover:text-foreground hover:shadow-md transition-all"
+        >
+          <Utensils size={16} />
+          食事の時間
+        </Link>
+      </div>
 
       <WakeChart logs={chartLogs} />
 
