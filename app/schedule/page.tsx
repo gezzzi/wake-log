@@ -1,18 +1,26 @@
 export const revalidate = 60;
 
 import { Calendar } from "lucide-react";
-import { getScheduleByDate } from "@/lib/schedule-queries";
+import {
+  getScheduleByDate,
+  getRecentSchedules,
+} from "@/lib/schedule-queries";
 import { getTodayJSTBounds } from "@/lib/utils";
 import { ScheduleForm } from "../_components/schedule-form";
+import { ScheduleHistory } from "../_components/schedule-history";
 
 export default async function SchedulePage() {
   const today = getTodayJSTBounds();
-  // Extract YYYY-MM-DD from today's start (e.g., "2026-04-28T00:00:00+09:00")
   const dateStr = today.start.slice(0, 10);
 
-  const schedule = await getScheduleByDate(dateStr);
+  const [schedule, recentSchedules] = await Promise.all([
+    getScheduleByDate(dateStr),
+    getRecentSchedules(30),
+  ]);
 
-  // Format date for display
+  // Filter out today from history (it's shown in the form)
+  const history = recentSchedules.filter((s) => s.date !== dateStr);
+
   const now = new Date();
   const dateLabel = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -36,6 +44,15 @@ export default async function SchedulePage() {
       </header>
 
       <ScheduleForm date={dateStr} initial={schedule} />
+
+      <div>
+        <div className="flex items-center space-x-2 text-muted mb-3 px-1">
+          <span className="text-sm font-medium uppercase tracking-wider">
+            履歴
+          </span>
+        </div>
+        <ScheduleHistory schedules={history} />
+      </div>
     </div>
   );
 }

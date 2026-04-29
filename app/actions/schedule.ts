@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { upsertSchedule } from "@/lib/schedule-queries";
+import { upsertSchedule, deleteSchedule } from "@/lib/schedule-queries";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -32,6 +32,13 @@ export async function saveSchedule(input: {
     input.lunch_at,
     input.dinner_at
   );
+  revalidatePath("/schedule");
+  revalidatePath("/wake");
+  return { ok: true };
+}
+
+export async function deleteScheduleAction(id: number): Promise<ActionResult> {
+  await deleteSchedule(id);
   revalidatePath("/schedule");
   revalidatePath("/wake");
   return { ok: true };

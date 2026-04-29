@@ -31,6 +31,25 @@ export async function getScheduleByDate(
   return result.rows.length > 0 ? toSchedule(result.rows[0]) : null;
 }
 
+export async function getRecentSchedules(
+  limit: number = 30
+): Promise<DailySchedule[]> {
+  await initDb();
+  const result = await db.execute({
+    sql: "SELECT * FROM daily_schedules ORDER BY date DESC LIMIT ?",
+    args: [limit],
+  });
+  return result.rows.map(toSchedule);
+}
+
+export async function deleteSchedule(id: number): Promise<void> {
+  await initDb();
+  await db.execute({
+    sql: "DELETE FROM daily_schedules WHERE id = ?",
+    args: [id],
+  });
+}
+
 export async function upsertSchedule(
   date: string,
   breakfastAt: string | null,
