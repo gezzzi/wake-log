@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Modal } from "./modal";
+import { TimeInput } from "./time-input";
 import { saveMealTime } from "@/app/actions/schedule";
 
 type MealType = "breakfast" | "lunch" | "dinner";
@@ -144,13 +145,11 @@ export function AddMealsButton() {
               <label className="block text-sm font-medium text-muted mb-1">
                 時刻
               </label>
-              <input
-                type="time"
+              <TimeInput
                 value={time}
-                onChange={(e) => setTime(e.target.value)}
-                required={!skipped}
+                onChange={setTime}
                 disabled={skipped}
-                className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 disabled:opacity-40"
+                className="w-full px-3 py-2"
               />
             </div>
           </div>

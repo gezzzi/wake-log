@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { DailySchedule } from "@/lib/schedule-queries";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+import { TimeInput } from "./time-input";
 import { saveSchedule, deleteScheduleAction } from "@/app/actions/schedule";
 
 function formatDateLabel(date: string): string {
@@ -69,29 +70,26 @@ export function ScheduleHistory({ schedules }: { schedules: DailySchedule[] }) {
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-xs text-muted-light mb-1">朝</label>
-                  <input
-                    type="time"
+                  <TimeInput
                     value={editBreakfast}
-                    onChange={(e) => setEditBreakfast(e.target.value)}
-                    className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-sm"
+                    onChange={setEditBreakfast}
+                    className="w-full px-2 py-1 text-sm"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-muted-light mb-1">昼</label>
-                  <input
-                    type="time"
+                  <TimeInput
                     value={editLunch}
-                    onChange={(e) => setEditLunch(e.target.value)}
-                    className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-sm"
+                    onChange={setEditLunch}
+                    className="w-full px-2 py-1 text-sm"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-muted-light mb-1">夜</label>
-                  <input
-                    type="time"
+                  <TimeInput
                     value={editDinner}
-                    onChange={(e) => setEditDinner(e.target.value)}
-                    className="w-full bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-sm"
+                    onChange={setEditDinner}
+                    className="w-full px-2 py-1 text-sm"
                   />
                 </div>
               </div>

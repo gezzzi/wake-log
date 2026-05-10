@@ -94,8 +94,17 @@ export function MealsChart({ schedules }: { schedules: DailySchedule[] }) {
               stroke={axisColor}
             />
             <YAxis
-              domain={[5 * 60, 23 * 60]}
-              ticks={[6 * 60, 9 * 60, 12 * 60, 15 * 60, 18 * 60, 21 * 60]}
+              domain={[5 * 60, 28 * 60]}
+              ticks={[
+                6 * 60,
+                9 * 60,
+                12 * 60,
+                15 * 60,
+                18 * 60,
+                21 * 60,
+                24 * 60,
+                27 * 60,
+              ]}
               tickFormatter={(v: number) => minutesToTime(v)}
               tick={{ fontSize: 11, fontFamily: "Inter", fill: axisColor }}
               width={50}

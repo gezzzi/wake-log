@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { DailySchedule } from "@/lib/schedule-queries";
 import { Modal } from "./modal";
+import { TimeInput } from "./time-input";
 import { saveSchedule } from "@/app/actions/schedule";
 
 function formatDateLabel(date: string): string {
@@ -174,12 +175,11 @@ export function MealsTodayYesterday({
                 {row.label}
               </label>
               <div className="flex items-center gap-3">
-                <input
-                  type="time"
+                <TimeInput
                   value={row.time}
-                  onChange={(e) => row.setTime(e.target.value)}
+                  onChange={row.setTime}
                   disabled={row.skipped}
-                  className="flex-1 bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 disabled:opacity-40"
+                  className="flex-1 px-3 py-2"
                 />
                 <label className="flex items-center gap-1.5 text-sm text-muted cursor-pointer select-none whitespace-nowrap">
                   <input
