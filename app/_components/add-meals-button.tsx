@@ -149,7 +149,6 @@ export function AddMealsButton() {
                 value={time}
                 onChange={setTime}
                 disabled={skipped}
-                showNowButton
                 className="w-full px-3 py-2"
               />
             </div>

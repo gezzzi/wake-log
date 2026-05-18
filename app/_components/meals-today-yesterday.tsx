@@ -179,7 +179,6 @@ export function MealsTodayYesterday({
                   value={row.time}
                   onChange={row.setTime}
                   disabled={row.skipped}
-                  showNowButton
                   className="flex-1 px-3 py-2"
                 />
                 <label className="flex items-center gap-1.5 text-sm text-muted cursor-pointer select-none whitespace-nowrap">
