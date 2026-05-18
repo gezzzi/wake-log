@@ -32,23 +32,25 @@ export async function getLatestExercise(
 
 export async function getRecentByType(
   type: string,
-  limit: number = 10
+  limit: number = 10,
+  offset: number = 0
 ): Promise<ExerciseLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type = ? ORDER BY datetime(done_at) DESC LIMIT ?",
-    args: [type, limit],
+    sql: "SELECT * FROM exercise_logs WHERE type = ? ORDER BY datetime(done_at) DESC LIMIT ? OFFSET ?",
+    args: [type, limit, offset],
   });
   return result.rows.map(toExerciseLog);
 }
 
 export async function getRecentRunOrWalk(
-  limit: number = 10
+  limit: number = 10,
+  offset: number = 0
 ): Promise<ExerciseLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') ORDER BY datetime(done_at) DESC LIMIT ?",
-    args: [limit],
+    sql: "SELECT * FROM exercise_logs WHERE type IN ('run', 'walk') ORDER BY datetime(done_at) DESC LIMIT ? OFFSET ?",
+    args: [limit, offset],
   });
   return result.rows.map(toExerciseLog);
 }

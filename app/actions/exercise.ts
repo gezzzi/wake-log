@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { insertExercise, updateExercise, deleteExercise } from "@/lib/exercise-queries";
+import {
+  insertExercise,
+  updateExercise,
+  deleteExercise,
+  getRecentByType,
+  getRecentRunOrWalk,
+  type ExerciseLog,
+} from "@/lib/exercise-queries";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
 import { normalizeDateToJST } from "@/lib/utils";
 
@@ -70,4 +77,15 @@ export async function deleteExerciseAction(id: number): Promise<ActionResult> {
   await deleteExercise(id);
   revalidateAll();
   return { ok: true };
+}
+
+export async function loadMoreExercises(
+  filter: "all" | "run" | "walk" | "squat",
+  offset: number,
+  limit: number = 20
+): Promise<ExerciseLog[]> {
+  if (filter === "all") {
+    return getRecentRunOrWalk(limit, offset);
+  }
+  return getRecentByType(filter, limit, offset);
 }

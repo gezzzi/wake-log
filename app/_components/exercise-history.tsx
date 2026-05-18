@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ExerciseLog } from "@/lib/exercise-queries";
 import { SQUAT_TAGS, CARDIO_TIME_TAGS } from "@/lib/exercise-tags";
 import {
   updateExerciseAction,
   deleteExerciseAction,
+  loadMoreExercises,
 } from "@/app/actions/exercise";
+
+const LOAD_MORE_LIMIT = 20;
 
 const SQUAT_TAG_COLORS: Record<string, string> = {
   歯磨き: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
@@ -25,12 +28,37 @@ const CARDIO_TAG_COLORS: Record<string, string> = {
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 
-export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
+export function ExerciseHistory({
+  initialLogs,
+  filter,
+}: {
+  initialLogs: ExerciseLog[];
+  filter: "all" | "run" | "walk" | "squat";
+}) {
   const router = useRouter();
+  const [logs, setLogs] = useState(initialLogs);
+  const [hasMore, setHasMore] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTime, setEditTime] = useState("");
   const [editTag, setEditTag] = useState<string>("");
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setLogs(initialLogs);
+    setHasMore(true);
+  }, [initialLogs]);
+
+  function handleLoadMore() {
+    startTransition(async () => {
+      const more = await loadMoreExercises(filter, logs.length, LOAD_MORE_LIMIT);
+      if (more.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      setLogs((prev) => [...prev, ...more]);
+      if (more.length < LOAD_MORE_LIMIT) setHasMore(false);
+    });
+  }
 
   if (logs.length === 0) {
     return <p className="text-muted text-center py-8">記録がありません</p>;
@@ -66,6 +94,7 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
   }
 
   return (
+    <div className="space-y-3">
     <div
       className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
@@ -176,6 +205,16 @@ export function ExerciseHistory({ logs }: { logs: ExerciseLog[] }) {
           )}
         </div>
       ))}
+    </div>
+      {hasMore && (
+        <button
+          onClick={handleLoadMore}
+          disabled={isPending}
+          className="w-full py-3 rounded-2xl text-sm text-muted hover:text-foreground hover:bg-card transition-colors disabled:opacity-50"
+        >
+          {isPending ? "読み込み中..." : "もっと見る"}
+        </button>
+      )}
     </div>
   );
 }

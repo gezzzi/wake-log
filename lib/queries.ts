@@ -14,11 +14,14 @@ function toWakeLog(row: Record<string, unknown>): WakeLog {
   };
 }
 
-export async function getRecentLogs(limit: number = 10): Promise<WakeLog[]> {
+export async function getRecentLogs(
+  limit: number = 10,
+  offset: number = 0
+): Promise<WakeLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM wake_logs ORDER BY datetime(woke_up_at) DESC LIMIT ?",
-    args: [limit],
+    sql: "SELECT * FROM wake_logs ORDER BY datetime(woke_up_at) DESC LIMIT ? OFFSET ?",
+    args: [limit, offset],
   });
   return result.rows.map(toWakeLog);
 }

@@ -85,7 +85,7 @@ export default async function SquatPage() {
             履歴
           </span>
         </div>
-        <ExerciseHistory logs={logs} />
+        <ExerciseHistory initialLogs={logs} filter="squat" />
       </div>
     </div>
   );

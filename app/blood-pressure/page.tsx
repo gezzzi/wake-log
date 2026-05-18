@@ -96,7 +96,7 @@ export default async function BloodPressurePage() {
             履歴
           </span>
         </div>
-        <BPHistory logs={logs} />
+        <BPHistory initialLogs={logs} />
       </div>
     </div>
   );

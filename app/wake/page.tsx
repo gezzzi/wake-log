@@ -64,7 +64,7 @@ export default async function WakePage() {
         <div className="flex items-center space-x-2 text-muted mb-3 px-1">
           <span className="text-sm font-medium uppercase tracking-wider">最近の記録</span>
         </div>
-        <RecentLogs logs={recentLogs} />
+        <RecentLogs initialLogs={recentLogs} />
       </div>
     </div>
   );

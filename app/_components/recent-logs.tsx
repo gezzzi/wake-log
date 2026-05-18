@@ -1,22 +1,34 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { WakeLog } from "@/lib/queries";
 import { formatShortDateJST, formatTimeJST } from "@/lib/utils";
 import { Pencil, Trash2, Check, X } from "lucide-react";
-import { updateWakeLog, deleteWakeLog } from "@/app/actions/wake";
+import {
+  updateWakeLog,
+  deleteWakeLog,
+  loadMoreWakeLogs,
+} from "@/app/actions/wake";
 
-export function RecentLogs({ logs }: { logs: WakeLog[] }) {
+const LOAD_MORE_LIMIT = 20;
+
+export function RecentLogs({ initialLogs }: { initialLogs: WakeLog[] }) {
   const router = useRouter();
+  const [logs, setLogs] = useState(initialLogs);
+  const [hasMore, setHasMore] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // Reset state when server returns new initial logs (after mutation)
+  useEffect(() => {
+    setLogs(initialLogs);
+    setHasMore(true);
+  }, [initialLogs]);
+
   if (logs.length === 0) {
-    return (
-      <p className="text-muted text-center py-8">記録がありません</p>
-    );
+    return <p className="text-muted text-center py-8">記録がありません</p>;
   }
 
   function handleDelete(id: number) {
@@ -44,60 +56,85 @@ export function RecentLogs({ logs }: { logs: WakeLog[] }) {
     });
   }
 
+  function handleLoadMore() {
+    startTransition(async () => {
+      const more = await loadMoreWakeLogs(logs.length, LOAD_MORE_LIMIT);
+      if (more.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      setLogs((prev) => [...prev, ...more]);
+      if (more.length < LOAD_MORE_LIMIT) setHasMore(false);
+    });
+  }
+
   return (
-    <div className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-colors divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
-      {logs.map((log) => (
-        <div
-          key={log.id}
-          className="flex items-center justify-between px-6 py-4"
-        >
-          <span className="text-sm text-muted">
-            {formatShortDateJST(log.woke_up_at)}
-          </span>
-          <div className="flex items-center gap-3">
-            {editingId === log.id ? (
-              <>
-                <input
-                  type="time"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-lg font-light tracking-tighter w-24 text-center"
-                />
-                <button
-                  onClick={() => handleSave(log)}
-                  className="p-1.5 rounded-full text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
-                >
-                  <Check size={16} />
-                </button>
-                <button
-                  onClick={() => setEditingId(null)}
-                  className="p-1.5 rounded-full text-muted hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="text-2xl font-light tracking-tighter">
-                  {formatTimeJST(log.woke_up_at)}
-                </span>
-                <button
-                  onClick={() => startEdit(log)}
-                  className="p-1.5 rounded-full text-muted hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onClick={() => handleDelete(log.id)}
-                  className="p-1.5 rounded-full text-muted hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/30 transition-colors"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </>
-            )}
+    <div className="space-y-3">
+      <div
+        className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 transition-colors divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        {logs.map((log) => (
+          <div
+            key={log.id}
+            className="flex items-center justify-between px-6 py-4"
+          >
+            <span className="text-sm text-muted">
+              {formatShortDateJST(log.woke_up_at)}
+            </span>
+            <div className="flex items-center gap-3">
+              {editingId === log.id ? (
+                <>
+                  <input
+                    type="time"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    className="bg-background border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 text-lg font-light tracking-tighter w-24 text-center"
+                  />
+                  <button
+                    onClick={() => handleSave(log)}
+                    className="p-1.5 rounded-full text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="p-1.5 rounded-full text-muted hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl font-light tracking-tighter">
+                    {formatTimeJST(log.woke_up_at)}
+                  </span>
+                  <button
+                    onClick={() => startEdit(log)}
+                    className="p-1.5 rounded-full text-muted hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(log.id)}
+                    className="p-1.5 rounded-full text-muted hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+      {hasMore && (
+        <button
+          onClick={handleLoadMore}
+          disabled={isPending}
+          className="w-full py-3 rounded-2xl text-sm text-muted hover:text-foreground hover:bg-card transition-colors disabled:opacity-50"
+        >
+          {isPending ? "読み込み中..." : "もっと見る"}
+        </button>
+      )}
     </div>
   );
 }

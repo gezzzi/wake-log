@@ -65,7 +65,7 @@ export default async function MealsPage() {
             履歴
           </span>
         </div>
-        <ScheduleHistory schedules={recentSchedules} />
+        <ScheduleHistory initialSchedules={recentSchedules} />
       </div>
     </div>
   );

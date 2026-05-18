@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { insertLog, updateLog, deleteLog, checkDuplicateDay } from "@/lib/queries";
+import {
+  insertLog,
+  updateLog,
+  deleteLog,
+  checkDuplicateDay,
+  getRecentLogs,
+  type WakeLog,
+} from "@/lib/queries";
 import { normalizeDateToJST } from "@/lib/utils";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -43,4 +50,11 @@ export async function deleteWakeLog(id: number): Promise<ActionResult> {
   revalidatePath("/calendar");
   revalidatePath("/chart");
   return { ok: true };
+}
+
+export async function loadMoreWakeLogs(
+  offset: number,
+  limit: number = 20
+): Promise<WakeLog[]> {
+  return getRecentLogs(limit, offset);
 }

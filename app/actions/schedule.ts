@@ -5,6 +5,8 @@ import {
   upsertSchedule,
   deleteSchedule,
   updateMealTime,
+  getRecentSchedules,
+  type DailySchedule,
 } from "@/lib/schedule-queries";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -48,6 +50,13 @@ export async function deleteScheduleAction(id: number): Promise<ActionResult> {
   revalidatePath("/meals");
   revalidatePath("/wake");
   return { ok: true };
+}
+
+export async function loadMoreSchedules(
+  offset: number,
+  limit: number = 20
+): Promise<DailySchedule[]> {
+  return getRecentSchedules(limit, offset);
 }
 
 export async function saveMealTime(input: {

@@ -34,11 +34,14 @@ export async function getLatestBP(): Promise<BPLog | null> {
   return result.rows.length > 0 ? toBPLog(result.rows[0]) : null;
 }
 
-export async function getRecentBP(limit: number = 10): Promise<BPLog[]> {
+export async function getRecentBP(
+  limit: number = 10,
+  offset: number = 0
+): Promise<BPLog[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM blood_pressure_logs ORDER BY datetime(measured_at) DESC LIMIT ?",
-    args: [limit],
+    sql: "SELECT * FROM blood_pressure_logs ORDER BY datetime(measured_at) DESC LIMIT ? OFFSET ?",
+    args: [limit, offset],
   });
   return result.rows.map(toBPLog);
 }

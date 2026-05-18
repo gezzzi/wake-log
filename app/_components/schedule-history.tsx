@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { DailySchedule } from "@/lib/schedule-queries";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import { TimeInput } from "./time-input";
-import { saveSchedule, deleteScheduleAction } from "@/app/actions/schedule";
+import {
+  saveSchedule,
+  deleteScheduleAction,
+  loadMoreSchedules,
+} from "@/app/actions/schedule";
+
+const LOAD_MORE_LIMIT = 20;
 
 function formatDateLabel(date: string): string {
   // date is YYYY-MM-DD JST
@@ -18,13 +24,36 @@ function formatDateLabel(date: string): string {
   return `${m}/${d} (${weekday})`;
 }
 
-export function ScheduleHistory({ schedules }: { schedules: DailySchedule[] }) {
+export function ScheduleHistory({
+  initialSchedules,
+}: {
+  initialSchedules: DailySchedule[];
+}) {
   const router = useRouter();
+  const [schedules, setSchedules] = useState(initialSchedules);
+  const [hasMore, setHasMore] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editBreakfast, setEditBreakfast] = useState("");
   const [editLunch, setEditLunch] = useState("");
   const [editDinner, setEditDinner] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setSchedules(initialSchedules);
+    setHasMore(true);
+  }, [initialSchedules]);
+
+  function handleLoadMore() {
+    startTransition(async () => {
+      const more = await loadMoreSchedules(schedules.length, LOAD_MORE_LIMIT);
+      if (more.length === 0) {
+        setHasMore(false);
+        return;
+      }
+      setSchedules((prev) => [...prev, ...more]);
+      if (more.length < LOAD_MORE_LIMIT) setHasMore(false);
+    });
+  }
 
   if (schedules.length === 0) {
     return <p className="text-muted text-center py-8">記録がありません</p>;
@@ -59,6 +88,7 @@ export function ScheduleHistory({ schedules }: { schedules: DailySchedule[] }) {
   }
 
   return (
+    <div className="space-y-3">
     <div
       className={`bg-card rounded-3xl shadow-[var(--card-shadow)] border border-transparent dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
@@ -147,6 +177,16 @@ export function ScheduleHistory({ schedules }: { schedules: DailySchedule[] }) {
           )}
         </div>
       ))}
+    </div>
+      {hasMore && (
+        <button
+          onClick={handleLoadMore}
+          disabled={isPending}
+          className="w-full py-3 rounded-2xl text-sm text-muted hover:text-foreground hover:bg-card transition-colors disabled:opacity-50"
+        >
+          {isPending ? "読み込み中..." : "もっと見る"}
+        </button>
+      )}
     </div>
   );
 }

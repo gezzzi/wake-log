@@ -73,12 +73,13 @@ export function calculateMealAverages(schedules: DailySchedule[]): {
 }
 
 export async function getRecentSchedules(
-  limit: number = 30
+  limit: number = 30,
+  offset: number = 0
 ): Promise<DailySchedule[]> {
   await initDb();
   const result = await db.execute({
-    sql: "SELECT * FROM daily_schedules ORDER BY date DESC LIMIT ?",
-    args: [limit],
+    sql: "SELECT * FROM daily_schedules ORDER BY date DESC LIMIT ? OFFSET ?",
+    args: [limit, offset],
   });
   return result.rows.map(toSchedule);
 }

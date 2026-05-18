@@ -165,7 +165,7 @@ export function CardioContent({ allLogs }: { allLogs: ExerciseLog[] }) {
             履歴
           </span>
         </div>
-        <ExerciseHistory logs={filteredLogs} />
+        <ExerciseHistory initialLogs={filteredLogs} filter={filter} />
       </div>
     </>
   );

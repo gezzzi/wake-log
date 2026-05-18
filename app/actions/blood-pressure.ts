@@ -1,7 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { insertBP, updateBP, deleteBP } from "@/lib/blood-pressure-queries";
+import {
+  insertBP,
+  updateBP,
+  deleteBP,
+  getRecentBP,
+  type BPLog,
+} from "@/lib/blood-pressure-queries";
 import { BP_TIME_TAGS, BP_SITUATION_TAGS } from "@/lib/bp-tags";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -76,4 +82,11 @@ export async function deleteBPAction(id: number): Promise<ActionResult> {
   revalidatePath("/");
   revalidatePath("/blood-pressure");
   return { ok: true };
+}
+
+export async function loadMoreBPLogs(
+  offset: number,
+  limit: number = 20
+): Promise<BPLog[]> {
+  return getRecentBP(limit, offset);
 }
